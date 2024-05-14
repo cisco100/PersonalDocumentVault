@@ -1,0 +1,35 @@
+{% extends 'layout/base.html' %}
+{% block title %}Pair{% endblock title %}
+
+
+{% block content %}
+
+
+<div>
+	<div>
+	<h1>
+		<em>
+		Pair for Multi Factor Authentication
+		</em>
+	</h1>
+	<ol>
+		<li>Download the Google Authenticator  Mobile App</li>
+		<li>Sign in with your emial </li>
+		<li>Scan the QRCode to pair</li>
+		<li>Click the button to Validate</li>
+	</ol>
+</div>
+	<div>
+		<img src="{{src}}"/>
+</div>
+<div>
+	<a href="{% url 'validate' %}"><button>Validate</button></a>
+</div>
+
+</div>
+      
+
+{%endblock content%}
+
+
+                        
