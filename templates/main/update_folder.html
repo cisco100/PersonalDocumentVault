@@ -1,0 +1,12 @@
+{% extends 'layout/base.html' %}
+{% block title %}Update Folder{% endblock title %}
+
+
+{% block content %}
+<h2>Update Folder</h2>
+<form method="post">
+  {% csrf_token %}
+  {{ form.as_p }}
+  <button type="submit">Update Folder</button>
+</form>
+{% endblock %}

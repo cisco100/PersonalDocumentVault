@@ -1,11 +1,12 @@
 {% extends 'layout/base.html' %}
-{% block title %}Upload File{% endblock title %}
+{% block title %}Update File{% endblock title %}
+
 
 {% block content %}
-<h2>Upload File</h2>
+<h2>Update File</h2>
 <form method="post" enctype="multipart/form-data">
   {% csrf_token %}
   {{ form.as_p }}
-  <button type="submit">Upload File</button>
+  <button type="submit">Update File</button>
 </form>
 {% endblock %}

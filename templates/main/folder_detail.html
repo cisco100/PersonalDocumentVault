@@ -3,14 +3,142 @@
 
 
 {% block content %}
+  <div class="container">
+    <h1>{{ folder.name }}</h1>
+    
+    <!-- Breadcrumb Navigation -->
+    <nav aria-label="breadcrumb">
+      <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{% url 'folder_detail' folder.id %}">Home</a></li>
+        {% if folder %}
+          {% for ancestor in folder.get_ancestors %}
+            <li class="breadcrumb-item"><a href="{% url 'folder_detail' ancestor.id %}">{{ ancestor.name }}</a></li>
+          {% endfor %}
+          <li class="breadcrumb-item active" aria-current="page">{{ folder.name }}</li>
+        {% endif %}
+      </ol>
+    </nav>
+    
+    <!-- Folder and File Listing -->
+    <div class="row">
+      <div class="col">
+        <a href="#" id="show-subfolder-form" class="btn btn-primary">New Folder</a>
+        <a href="{% url 'upload_file' folder.id %}" class="btn btn-secondary">Upload Files</a>
+      </div>
+    </div>
+    
+
+
+
+
+    <div class="row">
+      <div class="col">
+        
+        <ul>
+  {% for subfolder in subfolders %}
+    <li>
+      <a href="{% url 'folder_detail' subfolder.id %}">{{ subfolder.name }}</a>
+      <!-- Links for updating and deleting subfolders -->
+      <a href="{% url 'update_folder' subfolder.id %}">Update</a>
+      <a href="{% url 'delete_folder' subfolder.id %}" onclick="return confirm('Are you sure you want to delete this folder?');">Delete</a>
+    </li>
+  {% endfor %}
+</ul>
+      </div>
+
+
+
+<div class="row">
+      <div class="col">
+        
+        <ul>
+  <h3>Files</h3>
+<ul>
+  {% for file in files %}
+    <li>
+      <a href="{{ file.file.url }}">{{ file.name }}</a>
+      <!-- Links for updating and deleting files -->
+      <a href="{% url 'update_file' file.id %}">Update</a>
+      <a href="{% url 'delete_file' file.id %}" onclick="return confirm('Are you sure you want to delete this file?');">Delete</a>
+    </li>
+  {% endfor %}
+</ul>
+</ul>
+      </div>
+
+
+
+
+<!-- Display files -->
 
 
 
 
 
-      
-
-{%endblock content%}
 
 
-                        
+
+
+
+
+    </div>
+    <div id="subfolder-form" style="display:none;">
+      <form method="post" action="{% url 'folder_detail' folder.id %}">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit" class="btn btn-success">Create Subfolder</button>
+      </form>
+    </div>
+
+    <table class="table table-striped mt-3">
+      <thead>
+        <tr>
+          <th scope="col">Name</th>
+          <th scope="col">Owner</th>
+          <th scope="col">Size</th>
+          <th scope="col">Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for subfolder in subfolders %}
+          <tr>
+            <td>
+              <i class="fas fa-folder"></i>
+              <a href="{% url 'folder_detail' subfolder.id %}">{{ subfolder.name }}</a>
+            </td>
+            <td>{{ subfolder.owner.username }}</td>
+            <td>-</td>
+            <td>
+              <a href="{% url 'folder_detail' subfolder.id %}" class="btn btn-primary btn-sm">
+                <i class="fas fa-folder-open"></i>
+              </a>
+            </td>
+          </tr>
+        {% endfor %}
+        {% for file in files %}
+          <tr>
+            <td>
+              <i class="fas fa-file"></i>
+              <a href="{{ file.file.url }}" target="_blank">{{ file.file.url }}</a>
+            </td>
+            <td>{{ file.owner.username }}</td>
+            <td>{{ file.file.size|filesizeformat }}</td>
+            <td>
+              <a href="{{ file.file.url }}" class="btn btn-secondary btn-sm" target="_blank">
+                <i class="fas fa-download"></i>
+              </a>
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <script>
+    document.getElementById('show-subfolder-form').onclick = function() {
+      document.getElementById('subfolder-form').style.display = 'block';
+      this.style.display = 'none';
+      return false;
+    };
+  </script>
+{% endblock %}

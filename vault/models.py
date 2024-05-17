@@ -7,36 +7,51 @@ from django.conf import settings
 import base64, os
 from django.dispatch import receiver
 from dotenv import load_dotenv
+from django.contrib.auth import get_user_model
+User=get_user_model()
+
 
 # Create your models here.
 load_dotenv()
 
 SECRET_KEY = bytes(str(os.getenv('SECRET_KEY')),'utf-8')
 
-class Folder(models.Model):
-	user = models.ForeignKey(User, on_delete=models.CASCADE)
-	name=models.CharField(max_length=100)
-	description=models.CharField(max_length=255)
-	parent=models.ForeignKey('self',on_delete=models.CASCADE,null=True,blank=True,related_name="subfolders")
-	created=models.DateTimeField(auto_now_add=True)
-	updated=models.DateTimeField(auto_now=True)
-	class Meta:
-		ordering = ('-created',)
-	def __str__(self):
-		return self.user.username + '-' + self.name
 
-class File(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
-    name = models.CharField(max_length=250)
-    description = models.TextField(blank=True, null=True)
-    folder=models.ForeignKey(Folder,on_delete=models.CASCADE,related_name="files",null=True,blank=True)
-    file_path = models.FileField(upload_to='uploads/files/',blank=True, null=True)
-    created = models.DateTimeField(default=timezone.now)
-    updated = models.DateTimeField(auto_now=True)
-    encryption_status  =models.BooleanField()
+from django.db import models
+from django.contrib.auth.models import User
+from django.db import models
+from django.contrib.auth.models import User
+
+class Folder(models.Model):
+    name = models.CharField(max_length=255)
+    parent_folder = models.ForeignKey('self', on_delete=models.CASCADE, null=True, blank=True, related_name='subfolders')
+    owner = models.ForeignKey(User, on_delete=models.CASCADE, related_name='folders')
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
-        return self.user.username + '-' + self.name
+        return self.name
+# Watch the ancestors well, there is a bug
+    def get_ancestors(self):
+        ancestors = []
+        folder = self
+        while folder.parent_folder:
+            folder = folder.parent_folder
+            ancestors.insert(0, folder)
+        return ancestors
+
+
+class File(models.Model):
+    name = models.CharField(max_length=255)
+    file = models.FileField(upload_to='files/')
+    folder = models.ForeignKey(Folder, on_delete=models.CASCADE, related_name='files')
+    owner = models.ForeignKey(User, on_delete=models.CASCADE, related_name='files')
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return self.name
+
 
     def get_share_url(self):
         fernet = Fernet(settings.ID_ENCRYPTION_KEY)

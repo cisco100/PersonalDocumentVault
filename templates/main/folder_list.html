@@ -1,16 +1,17 @@
 {% extends 'layout/base.html' %}
-{% block title %}Folder List{% endblock title %}
+{% block title %}Parent Folders{% endblock title %}
 
 
 {% block content %}
+  
+ <h2><b>Parent Folders</b></h2>
+  <ul>
+    {% for folder in parent_folders %}
+      <li><a href="{% url 'folder_detail' folder.id %}">{{ folder.name }}</a></li>
+    {% endfor %}
+  </ul>
+  <a href="{% url 'create_folder' %}">Create New Folder</a>
+{% endblock %}
 
 
 
-
-
-      
-
-{%endblock content%}
-
-
-                        
