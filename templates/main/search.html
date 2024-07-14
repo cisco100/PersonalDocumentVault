@@ -1,0 +1,146 @@
+{% extends './base.html' %}
+{% block title %}Search Folders{% endblock %}
+{% load static %}
+
+{% block css %}
+<style>
+    .search-container {
+        padding: 20px;
+    }
+    .search-bar {
+        margin-bottom: 20px;
+    }
+    .search-results {
+        margin-top: 20px;
+    }
+    .folder-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+        gap: 20px;
+    }
+    .folder-item {
+        text-align: center;
+        padding: 10px;
+        background-color: #f8f9fa;
+        border-radius: 8px;
+        transition: all 0.3s ease;
+    }
+    .folder-item:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+    .folder-item img {
+        width: 64px;
+        height: 64px;
+        object-fit: contain;
+        margin-bottom: 10px;
+    }
+    .folder-name {
+        font-size: 14px;
+        word-wrap: break-word;
+    }
+    .no-results {
+        text-align: center;
+        padding: 20px;
+        font-style: italic;
+        color: #6c757d;
+    }
+    @media (max-width: 768px) {
+        .folder-grid {
+            grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+        }
+    }
+</style>
+{% endblock css %}
+
+{% block content1 %}
+<div class="container search-container">
+    <h1 class="mb-4">Search Folders</h1>
+    
+    <form class="search-bar" method="GET" action="{% url 'folder_search' %}">
+        <div class="input-group">
+            <input type="text" class="form-control" placeholder="Search folders..." name="q" value="{{ query }}">
+            <div class="input-group-append">
+                <button class="btn btn-primary" type="submit">Search</button>
+            </div>
+        </div>
+    </form>
+
+    <div class="search-results">
+        {% if query %}
+            <h2>Search Results for "{{ query }}"</h2>
+        {% endif %}
+
+        {% if parent_folders %}
+            <div class="folder-grid">
+                {% for folder in parent_folders %}
+                <div class="folder-item">
+                    <a href="#" class="folder-link" data-folder-id="{{ folder.id }}">
+                        <img src="{% static 'assets/img/folder.png' %}" alt="Folder Image">
+                        <div class="folder-name">{{ folder.name }}</div>
+                    </a>
+                </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <p class="no-results">No folders found{% if query %} for "{{ query }}"{% endif %}.</p>
+        {% endif %}
+    </div>
+</div>
+
+
+
+{% block js %}
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+<script>
+$(document).ready(function() {
+    $('.folder-link').on('click', function(e) {
+        e.preventDefault();
+        var folderId = $(this).data('folder-id');
+        
+        Swal.fire({
+            title: 'Enter Google Authenticator Code',
+            input: 'text',
+            inputAttributes: {
+                autocapitalize: 'off'
+            },
+            showCancelButton: true,
+            confirmButtonText: 'Verify',
+            showLoaderOnConfirm: true,
+            preConfirm: (pin) => {
+                return $.ajax({
+                    url: '{% url "verify" %}',
+                    method: 'POST',
+                    data: {
+                        pin: pin,
+                        csrfmiddlewaretoken: '{{ csrf_token }}'
+                    }
+                }).then(response => {
+                    if (response.success) {
+                        return response;
+                    }
+                    throw new Error(response.message || 'Verification failed');
+                }).catch(error => {
+                    Swal.showValidationMessage(`Request failed: ${error}`);
+                });
+            },
+            allowOutsideClick: () => !Swal.isLoading()
+        }).then((result) => {
+            if (result.isConfirmed) {
+                Swal.fire({
+                    title: 'Success!',
+                    text: 'Verification successful',
+                    icon: 'success'
+                }).then(() => {
+                    window.location.href = `/folders/${folderId}/`;
+                });
+            }
+        });
+    });
+});
+</script>
+{% endblock js %}
+
+{% endblock content1 %}

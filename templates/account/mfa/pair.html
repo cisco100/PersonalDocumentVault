@@ -1,0 +1,98 @@
+{% extends 'layout/base.html' %}
+{% block title %}Pair{% endblock title %}
+{% block css%}
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+    <style type="text/css">
+        body, html {
+            margin: 0;
+            padding: 0;
+            font-family: 'Roboto', sans-serif;
+            background: linear-gradient(135deg, #1a1a2e, #16213e);
+            color: #ffffff;
+            min-height: 100vh;
+        }
+    </style>
+{% endblock css%}
+{% block content %}
+<div class="container mt-5 d-flex justify-content-center">
+    <div class="card" style="width: 20rem;">
+        <div class="card-header">
+            <i class="fas fa-mobile-alt"></i> Pair With Your Device
+        </div>
+        <div class="card-body">
+            <img src="{{ src }}" alt="QR Code" class="card-img img-thumbnail img-fluid mt-3" style="max-width: 100%; height: auto; margin: 0 auto;">
+        </div>
+        <div class="card-footer">
+            <div class="row align-items-start justify-content-between">
+                <div class="col-auto">
+                    <button onclick="showVerification()" class="btn btn-primary"><i class="fas fa-check-circle"></i> Verify</button>
+                </div>
+                <div class="col-auto">
+                    <button onclick="showHint()" class="btn btn-info"><i class="fas fa-info-circle"></i> Hint</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.11.1/dist/sweetalert2.all.min.js"></script>
+<script>
+    function showHint() {
+        Swal.fire({
+            title: 'Hint',
+            html: '<ol class="list-group list-group-numbered">' +
+                '<li class="list-group-item">Download the Google Authenticator Mobile App</li>' +
+                '<li class="list-group-item">Sign in with your Gmail</li>' +
+                '<li class="list-group-item">Click on the <i class="fas fa-plus-circle"></i> sign to display the scanner</li>' +
+                '<li class="list-group-item">Scan the QRCode shown below</li>' +
+                '</ol>',
+            icon: 'info',
+            confirmButtonText: 'OK'
+        });
+    }
+
+    function showVerification() {
+        Swal.fire({
+            title: 'Enter Google Authenticator Code',
+            input: 'text',
+            inputAttributes: {
+                autocapitalize: 'off'
+            },
+            showCancelButton: true,
+            confirmButtonText: 'Verify',
+            showLoaderOnConfirm: true,
+            preConfirm: (pin) => {
+                return fetch('{% url "verify" %}', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                        'X-CSRFToken': '{{ csrf_token }}'
+                    },
+                    body: `pin=${pin}`
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (!data.success) {
+                        throw new Error(data.message)
+                    }
+                    return data
+                })
+                .catch(error => {
+                    Swal.showValidationMessage(`Verification failed: ${error}`)
+                })
+            },
+            allowOutsideClick: () => !Swal.isLoading()
+        }).then((result) => {
+            if (result.isConfirmed) {
+                Swal.fire({
+                    title: 'Success!',
+                    text: result.value.message,
+                    icon: 'success'
+                }).then(() => {
+                    window.location.href = '{% url "login" %}';
+                });
+            }
+        });
+    }
+</script>
+{% endblock content %}

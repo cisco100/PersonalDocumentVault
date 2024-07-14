@@ -1,0 +1,22 @@
+Content-Type: text/plain; charset="utf-8"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Subject: Django - Registration/Login App Password Reset
+From: webmaster@localhost
+To: nazu@gmail.com
+Date: Tue, 11 Jun 2024 15:10:42 -0000
+Message-ID: <171811864201.2980.2817408854089710652@DESKTOP-O8OO8EI>
+
+
+  To initiate the password reset process for your nazu@gmail.com Django Registration/Login App Account,
+  click the link below:
+
+  http://127.0.0.1:8000/accounts/password-reset-confirm/NQ/c8gq5r-50f56251e3db61ca6915e7f23c2ff7af/
+
+  If clicking the link above doesn't work, please copy and paste the URL in a new browser
+  window instead.
+
+  Sincerely,
+  The Developer
+
+-------------------------------------------------------------------------------

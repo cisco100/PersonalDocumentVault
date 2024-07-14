@@ -1,0 +1,180 @@
+/* static/css/style.css */
+body, html {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+#wrapper {
+    display: flex;
+    flex: 1;
+}
+
+#sidebar-wrapper {
+    width: 250px;
+    background: #fff;
+    color: #fffd5e;
+    transition: width 300ms;
+    z-index: 2; /* Ensure sidebar is above content */
+    position: fixed; /* Keep sidebar fixed */
+    height: 100%; /* Ensure sidebar stretches full height */
+}
+
+#sidebar-wrapper .sidebar-heading {
+    padding: 1rem;
+    font-size: 1.5rem;
+    background: #23272b;
+    text-align: center;
+}
+
+#sidebar-wrapper .list-group-item {
+    background: #343a40;
+    border: none;
+    transition: background 300ms;
+}
+
+#sidebar-wrapper .list-group-item:hover {
+    background: #495057;
+}
+
+#page-content-wrapper {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto; /* Enable scrolling when content exceeds height */
+    margin-left: 250px; /* Adjust for sidebar width */
+}
+
+.navbar {
+    padding: 0.5rem 1rem;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    width: 100%;
+    z-index: 1;
+    position: fixed; /* Keep navbar fixed */
+    top: 0; /* Position at top */
+}
+
+.footer {
+    width: 100%;
+    background: #f8f9fa;
+    padding: 0.5rem;
+    position: fixed; /* Keep footer fixed */
+    bottom: 0; /* Position at bottom */
+    z-index: 1;
+}
+
+main {
+    flex: 1;
+    padding: 1rem;
+    overflow-y: auto; /* Enable scrolling when content exceeds height */
+}
+
+@media (max-width: 768px) {
+    #sidebar-wrapper {
+        width: 60px;
+    }
+
+    .sidebar-heading,
+    .list-group-item span {
+        display: none;
+    }
+
+    #page-content-wrapper {
+        margin-left: 60px;
+    }
+
+    .navbar {
+        position: fixed;
+        top: 0;
+        width: 100%;
+        z-index: 2;
+    }
+
+    main {
+        padding-top: 56px; /* Height of the fixed navbar */
+    }
+
+    .footer {
+        position: fixed;
+        width: 100%;
+        bottom: 0;
+    }
+}
+
+@media (max-width: 480px) {
+    #sidebar-wrapper {
+        width: 60px;
+    }
+
+    .sidebar-heading,
+    .list-group-item span {
+        display: none;
+    }
+
+    #page-content-wrapper {
+        margin-left: 60px;
+    }
+
+    .navbar {
+        position: fixed;
+        top: 0;
+        width: 100%;
+        z-index: 2;
+    }
+
+    main {
+        padding-top: 56px; /* Height of the fixed navbar */
+    }
+
+    .footer {
+        position: fixed;
+        width: 100%;
+        bottom: 0;
+    }
+}
+
+
+
+
+
+
+
+
+
+.folder-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+.folder-item {
+    flex: 1 0 21%;
+    max-width: 21%;
+    margin-bottom: 20px;
+    text-align: center;
+}
+.folder-item img {
+    width: 100px;
+    height: 100px;
+}
+.floating-button {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    background-color: #007bff;
+    color: white;
+    border-radius: 50%;
+    width: 60px;
+    height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    cursor: pointer;
+    z-index: 1000;
+}
+
+
+
+

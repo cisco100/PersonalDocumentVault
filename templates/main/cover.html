@@ -1,0 +1,166 @@
+{% extends 'layout/base.html' %}
+{% load humanize %} 
+{% load static %}
+
+{% block title %}Welcome{% endblock title %}
+
+{% block css %}
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+<style type="text/css">
+       body, html {
+            margin: 0;
+            padding: 0;
+            font-family: 'Roboto', sans-serif;
+            background: linear-gradient(135deg, #1a1a2e, #16213e);
+            color: #ffffff;
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 0;
+        }
+        .logo {
+            font-size: 24px;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+        }
+        .logo img {
+            width: 40px;
+            margin-right: 10px;
+        }
+        nav a {
+            color: #ffffff;
+            text-decoration: none;
+            margin-left: 20px;
+        }
+        .login-btn {
+            background-color: rgba(255, 255, 255, 0.1);
+            padding: 8px 16px;
+            border-radius: 4px;
+        }
+        .hero {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 80px;
+        }
+        .hero-content {
+            max-width: 50%;
+        }
+        h1 {
+            font-size: 48px;
+            margin-bottom: 20px;
+        }
+        p {
+            font-size: 18px;
+            color: #b8c1ec;
+            margin-bottom: 30px;
+        }
+        .cta-button {
+            background-color: #4361ee;
+            color: #ffffff;
+            text-decoration: none;
+            padding: 12px 24px;
+            border-radius: 4px;
+            font-weight: bold;
+            transition: background-color 0.3s;
+        }
+        .cta-button:hover {
+            background-color: #3a0ca3;
+        }
+        .secondary-cta {
+            color: #ffffff;
+            margin-left: 20px;
+        }
+        .stats {
+            display: flex;
+            margin-top: 40px;
+        }
+        .stat {
+            margin-right: 40px;
+        }
+        .stat-number {
+            font-size: 24px;
+            font-weight: bold;
+        }
+        .stat-label {
+            color: #b8c1ec;
+        }
+        .vault-image {
+            width: 400px;
+            height: 400px;
+            background: url('https://i.pinimg.com/originals/93/d3/e3/93d3e31639a4d07613de9dccdc8bd5e8.png') no-repeat center;
+            background-size: contain;
+            animation: float 6s ease-in-out infinite;
+        }
+        @keyframes float {
+            0% { transform: translateY(0px); }
+            50% { transform: translateY(-20px); }
+            100% { transform: translateY(0px); }
+        }
+    </style>
+ 
+{% endblock css%}
+{% block content %}
+
+     <div class="container">
+        <header>
+            <div class="logo">
+                <img src="https://i.pinimg.com/originals/93/d3/e3/93d3e31639a4d07613de9dccdc8bd5e8.png" alt="Vault Icon">
+                Personal Document Vault
+            </div>
+            <nav>
+                <a href="#">Home</a>
+                <a href="#">Features</a>
+                <a href="#">Security</a>
+                <a href="#">Pricing</a>
+                <a href="#" class="login-btn">Log In</a>
+            </nav>
+        </header>
+        <div class="hero">
+            <div class="hero-content">
+                <h1>Secure Your Documents with Confidence</h1>
+                <p>Personal Document Vault offers unparalleled protection for your sensitive files, accessible anywhere, anytime.</p>
+                <a href="#" class="cta-button">Start Securing Files</a>
+                <a href="#" class="secondary-cta">Learn More ></a>
+                <div class="stats">
+                    <div class="stat">
+                        <div class="stat-number">256-bit</div>
+                        <div class="stat-label">Encryption</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-number">99.9%</div>
+                        <div class="stat-label">Uptime</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-number">24/7</div>
+                        <div class="stat-label">Support</div>
+                    </div>
+                </div>
+            </div>
+            <div class="vault-image"></div>
+        </div>
+    </div>
+ 
+ 
+     
+{%endblock content%}
+
+
+
+
+
+
+  
+
+
+                        

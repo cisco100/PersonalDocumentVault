@@ -1,0 +1,296 @@
+{% extends './base.html' %}
+{% block title %}Folders Detail{% endblock %}
+{% load humanize %} 
+{% load static %}
+
+{% block css %}
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.datatables.net/1.11.5/css/dataTables.bootstrap5.min.css" rel="stylesheet">
+    <!-- causing problem with sidebar<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@1.0.1/css/bulma.min.css"> -->
+
+    <link href="https://cdn.datatables.net/buttons/2.0.0/css/buttons.bootstrap5.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            padding-bottom: 120px; /* Adjust based on your footer height */
+        }
+        .breadcrumb {
+            background-color: #f8f9fa;
+            padding: 10px 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+        .breadcrumb-item + .breadcrumb-item::before {
+            content: ">";
+        }
+        .summary-card {
+            background-color: #f8f9fa;
+            border-left: 5px solid #007bff;
+        }
+        .summary-icon {
+            font-size: 3rem;
+            color: #007bff;
+        }
+        .table-responsive {
+            overflow-x: auto;
+        }
+        .action-column {
+            min-width: 100px;
+        }
+        @media (max-width: 768px) {
+            .summary-card .row {
+                flex-direction: column;
+            }
+            .summary-icon {
+                margin-top: 1rem;
+            }
+        }
+    </style>
+{% endblock css %}
+ {%block content1%}
+
+    <div class="container mt-4">
+        <!-- Breadcrumb -->
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                {% for folder in breadcrumb %}
+                    <li class="breadcrumb-item {% if forloop.last %}active{% endif %}">
+                        {% if not forloop.last %}
+                            <a href="{% url 'folder_detail' folder.id %}">{{ folder.name }}</a>
+                        {% else %}
+                            {{ folder.name }}
+                        {% endif %}
+                    </li>
+                {% endfor %}
+            </ol>
+        </nav>
+
+        <!-- Summary Card -->
+        <div class="card summary-card mb-4">
+            <div class="card-body">
+                <div class="row align-items-center">
+                    <div class="col-md-9">
+                        <h5 class="card-title">Folder: {{ folder.name }}</h5>
+                        <p class="card-text">
+                            Total Items: <strong>{{ total|intcomma }}</strong><br>
+                            Sub-Folders: <strong>{{ subfolders.count|intcomma }}</strong> | 
+                            Files: <strong>{{ files.count|intcomma }}</strong>
+                        </p>
+                    </div>
+                    <div class="col-md-3 text-center">
+                        <i class="fas fa-folder-open summary-icon"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="mb-3">
+            <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addsubFolderModal">
+                <i class="fas fa-folder-plus"></i> New Folder
+            </button>
+            <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#uploadFileModal">
+                <i class="fas fa-file-upload"></i> Upload File
+            </button>
+        </div>
+
+        <!-- Content Table -->
+        <div class="card">
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover" id="example">
+                        <thead>
+                            <tr>
+                                <th>Type</th>
+                                <th>Name</th>
+                                <th>Size</th>
+                                <th>Last Modified</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for subfolder in subfolders %}
+                            <tr>
+                                <td><i class="fas fa-folder text-warning"></i></td>
+                                <td><a href="{% url 'folder_detail' subfolder.id %}">{{ subfolder.name }}</a></td>
+                                <td>-</td>
+                                <td>{{ subfolder.updated_at|date:"M d, Y H:i" }}</td>
+                                <td class="action-column">
+                                    <div class="dropdown">
+                                        <button class="btn btn-secondary btn-sm dropdown-toggle" type="button" id="dropdownMenuButton1" data-bs-toggle="dropdown" aria-expanded="false">
+                                            Actions
+                                        </button>
+                             <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton1">
+                                 <li><a class="dropdown-item rename-action" href="#"><i class="fas fa-edit"></i>Rename</a></li>
+                                <li><a class="dropdown-item delete-action" href="#" ><i class="fas fa-trash"></i>Delete</a></li>
+                                <li><a class="dropdown-item move-action" href="#" ><i class="fas fa-arrows-alt"></i>Move</a></li>
+                            </ul>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                            {% for file in files %}
+                            <tr>
+                                <td><i class="fas fa-file text-primary"></i></td>
+                                <td>{{ file.name }}</td>
+                                <td>{{ file.size|filesizeformat }}</td>
+                                <td>{{ file.updated_at|date:"M d, Y H:i" }}</td>
+                                <td class="action-column">
+                                    <div class="dropdown">
+                                        <button class="btn btn-secondary btn-sm dropdown-toggle" type="button" id="dropdownMenuButton2" data-bs-toggle="dropdown" aria-expanded="false">
+                                            Actions
+                                        </button>
+                                        <!-- After decryption share will come+download -->
+                            <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton1">
+                                <li><a class="dropdown-item rename-action" href="#"><i class="fas fa-lock-open"></i>Decrypt</a></li> 
+                                <li><a class="dropdown-item rename-action" href="#"><i class="fas fa-edit"></i>Rename</a></li>
+                                <li><a class="dropdown-item delete-action" href="#" ><i class="fas fa-trash"></i>Delete</a></li>
+                                <li><a class="dropdown-item move-action" href="#" ><i class="fas fa-arrows-alt"></i>Move</a></li>
+                            </ul>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+        <!-- Modals (Add Folder and Upload File) go here -->
+
+
+         <!-- MODAL FOLDER -->
+                <div class="modal fade" id="addsubFolderModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+                    <div class="modal-dialog">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title" id="staticBackdropLabel">Add Sub-Folder</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                            </div>
+                            <div class="modal-body">
+                                <form method="post" action="{% url 'create_subfolder' folder.id %}">
+                                    {% csrf_token %}
+                                    {{form.media}}
+                                    <div class="form-group">
+                                        <label for="id_name">Folder Name</label>
+                                        {{ form.name }}
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="id_description">Description:</label>
+                                        {{ form.description }}
+                                    </div>
+                                    <button type="submit" class="btn btn-primary">Add Folder</button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- MODAL FILE -->
+                <div class="modal fade" id="uploadFileModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+                    <div class="modal-dialog">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title" id="staticBackdropLabel">Upload File</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                            </div>
+                            <div class="modal-body">
+    
+   <form method="post" action="{% url 'upload_file' folder.id %}" enctype="multipart/form-data">
+    {% csrf_token %}
+    <div class="field">
+        <label class="label" for="id_name">File Name</label>
+        <div class="control has-icons-left">
+            <input class="input" type="text" name="name" id="id_name" placeholder="Enter file name">
+            <span class="icon is-small is-left">
+                <i class="fas fa-file-signature"></i>
+            </span>
+        </div>
+    </div>
+    <div class="field">
+        <label class="label" for="id_file">Choose File</label>
+        <div class="file has-name">
+            <label class="file-label">
+                <input class="file-input" type="file" name="file" id="id_file">
+                <span class="file-cta">
+                    <span class="file-icon">
+                        <i class="fas fa-upload"></i>
+                    </span>
+                    <span class="file-label">
+                        Choose a file…
+                    </span>
+                </span>
+                <span class="file-name">
+                    No file chosen
+                </span>
+            </label>
+        </div>
+    </div>
+    <div class="field">
+        <div class="control">
+            <button class="button is-primary" type="submit">
+                <span class="icon">
+                    <i class="fas fa-cloud-upload-alt"></i>
+                </span>
+                <span>Upload File</span>
+            </button>
+        </div>
+    </div>
+</form>     
+  
+                </div>
+                                </div>
+                            </div>
+                        </div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+    {% block js%}
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/1.11.5/js/dataTables.bootstrap5.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            $('#example').DataTable({
+                responsive: true,
+                pageLength: 5,
+                language: {
+                    search: "Filter records:"
+                },
+                "bDestroy": true,
+                buttons: [
+            'copy', 'csv', 'excel', 'pdf', 'print', 'colvis'
+        ]
+            });
+        });
+   
+
+document.addEventListener('DOMContentLoaded', () => {
+    const fileInput = document.querySelector('.file-input');
+    const fileName = document.querySelector('.file-name');
+
+    fileInput.addEventListener('change', () => {
+        if (fileInput.files.length > 0) {
+            fileName.textContent = fileInput.files[0].name;
+        } else {
+            fileName.textContent = 'No file chosen';
+        }
+    });
+});
+</script>
+    {%endblock js%}
+ {%endblock content1%}
+
