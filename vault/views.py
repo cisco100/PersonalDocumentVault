@@ -21,6 +21,7 @@ from dotenv import load_dotenv
 import os
 from django.http import JsonResponse
 from PIL import Image 
+import requests
 import pathlib
 from django.core.paginator import Paginator
 from pathlib import Path
@@ -151,14 +152,25 @@ def keys(request):
     file_instance = get_object_or_404(File, owner=request.user)
     qrcode = file_instance.qrcode
     form = ExtractKeyForm(request.POST or None, request.FILES or None)
-    out = {}
+    out = ""
+
     if request.method == 'POST':
+       
+
         if form.is_valid():
-            image = request.FILES['file']  # Changed from 'steg' to 'file' to match Dropzone
-            out = conceal(str(image.name))
-            if request.is_ajax():
+            image = form.cleaned_data['steg']
+            img_url=requests.get(f"http://127.0.0.1:8000/media/keys/{image.name}") 
+             
+             # Use get() to safely retrieve file
+            if image:
+                
+                out = reveal(Image.open(BytesIO(img_url.content)))
+                
                 return JsonResponse({'out': out})
-    print(out)            
+
+    # Debugging output
+    print("Out value:", out)  # Check if out is populated
+
     return render(request, "main/keys.html", {"form": form, "out": out, "qrcode": qrcode})
 
 
