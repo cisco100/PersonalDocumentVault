@@ -1,14 +1,15 @@
-from django.urls import path
+ from django.urls import path
 from vault import views
 
 urlpatterns = [
+    path("",views.cover,name="cover"),
     path('folders/', views.folder_list, name='folder_list'),
-    path("cover/",views.cover,name="cover"),
-    path("dashboard/",views.dashboard,name="dashboard"),
+    path("main/",views.dashboard,name="main"),
     path('keys/', views.keys, name='keys'),
     path('tools/', views.tools, name='tools'),
     path('settings/', views.setting, name='settings'),
     path('folders/', views.folder_search_view, name='folder_search'),
+    path('search/', views.search_files, name='search_files'),
     path('folders/create/', views.create_folder, name='create_folder'),
     path('folders/<str:folder_id>/', views.folder_detail, name='folder_detail'),
     path('folders/<str:folder_id>/upload/', views.upload_file, name='upload_file'),

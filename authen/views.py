@@ -1,9 +1,11 @@
-from django.shortcuts import render,redirect
+ from django.shortcuts import render,redirect
 import requests
 import os
 import time
+from PIL import Image 
+from io import BytesIO
 from bs4 import BeautifulSoup
-from django.urls import reverse
+from django.urls import reverse,reverse_lazy
 import uuid
 from django.http import JsonResponse
 from authen.forms import PinCodeForm
@@ -15,6 +17,13 @@ from django.contrib.messages.views import SuccessMessageMixin
 from django.views import View
 from django.contrib.auth.decorators import login_required
 from .forms import RegisterForm, LoginForm, UpdateUserForm, UpdateProfileForm
+import qrcode
+import pyotp
+from django.http import HttpResponse, JsonResponse
+from django.views.decorators.csrf import csrf_exempt
+from django.conf import settings
+import base64
+from django.views.decorators.http import require_POST,require_http_methods
 
 
 
@@ -43,7 +52,7 @@ class RegisterView(View):
             username = form.cleaned_data.get('username')
             messages.success(request, f'Account created for {username}')
 
-            return redirect(to='login')
+            return redirect(to='pair')
 
         return render(request, self.template_name, {'form': form})
 
@@ -63,6 +72,7 @@ class CustomLoginView(LoginView):
             self.request.session.modified = True
 
         # else browser session will be as long as the session cookie time "SESSION_COOKIE_AGE" defined in settings.py
+    
         return super(CustomLoginView, self).form_valid(form)
 
 
@@ -104,59 +114,53 @@ def profile(request):
 
 
 
+CONSTANT_SECRET = 'JBSWY3DPEHPK3PXP7S2QLDPBIDWDOP7T'
 
-
-APPNAME="PDV"
-SECRETCODE=secretcode()
+@require_http_methods(["GET"])
 def pair(request):
-	src=''
-	if request.user.is_authenticated and not request.user.is_anonymous:
-		
-		APPINFO=str(request.user.username).upper()
+    # Use the constant secret
+    secret = CONSTANT_SECRET
+    
+    # Generate a time-based OTP using the secret code
+    totp = pyotp.TOTP(secret)
+    
+    # Create the provisioning URI
+    uri = totp.provisioning_uri(name=request.user.username, issuer_name='PDV')
+     
+    # Generate the QR code
+    qr = qrcode.make(uri)
+    buffer = BytesIO()
+    qr.save(buffer, format="PNG")
+    qr_image_base64 = base64.b64encode(buffer.getvalue()).decode('utf-8')
+    
+    # Render the QR code within the template
+    context = {
+        'src': 'data:image/png;base64,' + qr_image_base64,
+        'secret': secret  # Pass the secret to the template for display
+    }
+    return render(request, 'account/mfa/pair.html', context)
 
-		url=f'https://www.authenticatorapi.com/pair.aspx?AppName={APPNAME}&AppInfo={APPINFO}&SecretCode={SECRETCODE}'
-		req= requests.get(url)
-		soup=BeautifulSoup(req.text,'html.parser')
-		img=soup.find('img')
-		src=img.get('src')
-	else:
-		print("something is wrong")
-	return render(request,'account/mfa/pair.html',{"src":src})
-
-# def verify(request):
-#     form=PinCodeForm(request.POST or None)
-#     msg=None
-#     print(SECRETCODE)
-#     if request.method=="POST":
-#         if form.is_valid():
-#             pin=form.cleaned_data.get("pin")
-#             url=f'https://www.authenticatorapi.com/Validate.aspx?Pin={pin}&SecretCode={SECRETCODE}'
-#             req=requests.get(url)
-#             if req.text=='True':
-#             	msg='' # msg="<p style='color:green;'> <b>Verification Successful</b></p>"
-#             	time.sleep(5)
-#             	return redirect(reverse('cover'))
-#             elif req.text=='False':
-#             	msg=""#msg="<p style='color:red;'> <b>Verification Failed,please try again</b></p>"
- 
-#     return render(request,'account/mfa/verify.html',{'msg':msg,'form':form})
-
-
-
-
+@csrf_exempt
+@require_http_methods(["POST"])
 def verify(request):
-    if request.method == "POST":
-        form = PinCodeForm(request.POST)
-        if form.is_valid():
-            pin = form.cleaned_data.get("pin")
-            url = f'https://www.authenticatorapi.com/Validate.aspx?Pin={pin}&SecretCode={SECRETCODE}'
-            req = requests.get(url)
-            if req.text == 'True':
-                return JsonResponse({'success': True, 'message': 'Verification successful'})
-            else:
-                return JsonResponse({'success': False, 'message': 'Verification failed, please try again'})
-    return JsonResponse({'success': False, 'message': 'Invalid request'})
+    pin = request.POST.get("pin")
+    if not pin:
+        return JsonResponse({'success': False, 'message': 'PIN not provided'})
+    
+    # Use the constant secret
+    secret = CONSTANT_SECRET
+    
+    totp = pyotp.TOTP(secret)
+    if totp.verify(pin):
+        # Verification successful
+        return JsonResponse({'success': True, 'message': 'Verification successful'})
+        return redirect(to='login')
+
+    else:
+        return JsonResponse({'success': False, 'message': 'Verification failed, please try again'})
+
+
 
 
 class LogoutClassView(LogoutView):
-	template_name="account/users/logout.html"
+    template_name="account/users/logout.html"

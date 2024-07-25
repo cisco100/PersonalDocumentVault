@@ -1,4 +1,4 @@
-# views.py
+ # views.py
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import render, redirect, get_object_or_404
@@ -9,6 +9,7 @@ from cryptography.hazmat.primitives import serialization, hashes
 from cryptography.fernet import Fernet
 from django.urls import reverse
 import pathlib
+import re
 from stegano import lsb
 from django.core.files.base import ContentFile
 from io import BytesIO
@@ -26,32 +27,21 @@ import pathlib
 from django.core.paginator import Paginator
 from pathlib import Path
 from django.views.decorators.csrf import ensure_csrf_cookie
-from django.views.decorators.http import require_POST
+from django.views.decorators.http import require_POST,require_GET
+import logging
+from urllib.parse import urljoin
+from django.db.models import Q
+from django.core.exceptions import ValidationError
+
+logger = logging.getLogger(__name__)
+
+
 load_dotenv()
 
 ID_ENCRYPTION_KEY = str(os.getenv('ID_ENCRYPTION_KEY'))
-
-
-
-@login_required
-def folder_list(request, parent_folder_id=None):
-    form = FolderForm(request.POST or None)
-    parent_folder = None
-    if parent_folder_id:
-        parent_folder = get_object_or_404(Folder, id=parent_folder_id, owner=request.user)
-
-
-
-    else:
-		# Filter the folders to only include those with no parent folder
-        parent_folders = Folder.objects.filter(owner=request.user, parent_folder=None)
-
-    return render(request, 'main/folder_list.html', { 'form':form,'parent_folder': parent_folder, 'parent_folders': parent_folders})
-
-@login_required
+ 
 def cover(request):
     return render(request,"main/cover.html")
-
 
 @login_required
 def create_folder(request, parent_folder_id=None):
@@ -76,6 +66,46 @@ def create_folder(request, parent_folder_id=None):
     return render(request, 'main/create_folder.html', {'form': form,'parent_folder': parent_folder, 'parent_folders': parent_folders})
 
 
+
+@login_required
+def create_subfolder(request, folder_id):
+    parent_folder = get_object_or_404(Folder, id=folder_id, owner=request.user)
+
+    if request.method == 'POST':
+        form = FolderForm(request.POST)
+        if form.is_valid():
+            subfolder = form.save(commit=False)
+            subfolder.parent_folder = parent_folder
+            subfolder.owner = request.user
+            subfolder.save()
+            return redirect('folder_detail', parent_folder.id)
+    else:
+        form = FolderForm()
+
+    return redirect('folder_detail', parent_folder.id)
+
+
+
+@login_required
+def folder_list(request, parent_folder_id=None):
+    form = FolderForm(request.POST or None)
+    parent_folder = None
+    if parent_folder_id:
+        parent_folder = get_object_or_404(Folder, id=parent_folder_id, owner=request.user)
+
+
+
+    else:
+        # Filter the folders to only include those with no parent folder
+        parent_folders = Folder.objects.filter(owner=request.user, parent_folder=None)
+
+    return render(request, 'main/folder_list.html', { 'form':form,'parent_folder': parent_folder, 'parent_folders': parent_folders})
+
+
+
+
+
+
 @login_required
 def folder_detail(request, folder_id):
     folder = get_object_or_404(Folder, id=folder_id, owner=request.user)
@@ -88,8 +118,8 @@ def folder_detail(request, folder_id):
     form_key=EnterKeyForm(request.POST or None)
 
     if request.method=="POST":
-    	if form_key.is_valid():
-    		request.session['entered_key']=request.POST['key']
+        if form_key.is_valid():
+            request.session['entered_key']=request.POST['key']
 
     breadcrumb = []
     current_folder = folder
@@ -112,66 +142,7 @@ def folder_detail(request, folder_id):
 
 
 
-@login_required
-def create_subfolder(request, folder_id):
-    parent_folder = get_object_or_404(Folder, id=folder_id, owner=request.user)
 
-    if request.method == 'POST':
-        form = FolderForm(request.POST)
-        if form.is_valid():
-            subfolder = form.save(commit=False)
-            subfolder.parent_folder = parent_folder
-            subfolder.owner = request.user
-            subfolder.save()
-            return redirect('folder_detail', parent_folder.id)
-    else:
-        form = FolderForm()
-
-    return redirect('folder_detail', parent_folder.id)
-
-
-
-
-# @login_required
-# def keys(request):
-#     file_instance = get_object_or_404(File, owner=request.user)
-#     qrcode=file_instance.qrcode #file_instance.qrcode
-#     form = ExtractKeyForm(request.POST or None)
-#     out=""
-#     if request.method == 'POST':
-#         if form.is_valid():
-#             image = request.FILES['steg']
-#             out=conceal(str(image.name))
-#     return render(request,"main/keys.html",{"form":form,"out":out,"qrcode":qrcode})
-
-
-
-@ensure_csrf_cookie
-@login_required
-def keys(request):
-    file_instance = get_object_or_404(File, owner=request.user)
-    qrcode = file_instance.qrcode
-    form = ExtractKeyForm(request.POST or None, request.FILES or None)
-    out = ""
-
-    if request.method == 'POST':
-       
-
-        if form.is_valid():
-            image = form.cleaned_data['steg']
-            img_url=requests.get(f"http://127.0.0.1:8000/media/keys/{image.name}") 
-             
-             # Use get() to safely retrieve file
-            if image:
-                
-                out = reveal(Image.open(BytesIO(img_url.content)))
-                
-                return JsonResponse({'out': out})
-
-    # Debugging output
-    print("Out value:", out)  # Check if out is populated
-
-    return render(request, "main/keys.html", {"form": form, "out": out, "qrcode": qrcode})
 
 
 @login_required
@@ -187,8 +158,69 @@ def setting(request):
     return render(request,"main/settings.html")
 
 
+ 
 
-# Delete views
+
+  
+@ensure_csrf_cookie
+@login_required
+def keys(request):
+    base_url = f"{request.scheme}://{request.get_host()}"
+    form = ExtractKeyForm(request.POST or None, request.FILES or None)
+
+    out = ""
+    qrcode_url = None
+    file_instance = None
+    out = ""
+    if request.method == 'POST':
+        if form.is_valid():
+            image = form.cleaned_data['steg']
+            img_url = urljoin(base_url, f"/media/keys/{image.name}")
+            img_url=requests.get(img_url) 
+             
+             # Use get() to safely retrieve file
+            if image:
+                
+                out = reveal(Image.open(BytesIO(img_url.content)))
+                
+                return JsonResponse({'out': out})
+
+    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+        query = request.GET.get('q')
+        file_id = request.GET.get('file_id')
+
+        if query:
+            # Handle search request
+            files = File.objects.filter(
+                Q(name__icontains=query) & Q(owner=request.user)
+            ).values('id', 'name')[:10]  # Limit to 10 results
+            return JsonResponse(list(files), safe=False)
+        
+        elif file_id:
+            # Handle file selection request
+            file_instance = get_object_or_404(File, id=file_id, owner=request.user)
+            qrcode_url = None
+            if file_instance.qrcode:
+                 
+                qrcode_url = urljoin(base_url, f"/media/{file_instance.qrcode.name}")
+            
+            return JsonResponse({
+                'name': file_instance.name,
+                'qrcode_url': qrcode_url
+            })
+
+        return JsonResponse([], safe=False)
+
+    # Handle non-AJAX requests
+
+
+    return render(request, "main/keys.html", {
+        "form": form,
+        "out": out,
+        "qrcode_url": qrcode_url,
+        "file_instance": file_instance
+    })
+ # Delete views
 @login_required
 def delete_folder(request, folder_id):
     folder_instance = get_object_or_404(Folder, id=folder_id, owner=request.user)
@@ -396,6 +428,33 @@ def folder_search_view(request):
         'query': query,
     }
     return render(request, 'main/search.html', context)
+
+
+
+@require_GET
+def search_files(request):
+    query = request.GET.get('q', '').lower()
+    if len(query) < 3:
+        return JsonResponse([], safe=False)
+
+    base_dir = settings.BASE_DIR  # Or any other directory you want to search in
+    results = []
+
+    for root, dirs, files in os.walk(base_dir):
+        for file in files:
+            if re.search(query, file.lower()):
+                file_path = os.path.join(root, file)
+                relative_path = os.path.relpath(file_path, base_dir)
+                results.append({
+                    'name': file,
+                    'path': relative_path
+                })
+                if len(results) >= 20:  # Limit to 20 results
+                    break
+        if len(results) >= 20:
+            break
+
+    return JsonResponse(results, safe=False)
 
 #-------------------------------------------------------------------------------------------------------
 

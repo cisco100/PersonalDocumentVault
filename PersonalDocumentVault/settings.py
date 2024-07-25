@@ -160,7 +160,7 @@ IMG_PATH=Path(BASE_DIR/'rcs/pdv.png')
 DEFAULT_AVATAR=Path(BASE_DIR/'rcs/default_avatar.jpg')
 
 
-LOGIN_REDIRECT_URL = '/'
+LOGIN_REDIRECT_URL = 'main'
 LOGIN_URL = 'login'
 
 

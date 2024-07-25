@@ -1,4 +1,4 @@
-{% extends 'layout/base.html' %}
+ {% extends 'layout/base.html' %}
 {% load humanize %} 
 {% load static %}
 
@@ -118,19 +118,13 @@
                 <img src="https://i.pinimg.com/originals/93/d3/e3/93d3e31639a4d07613de9dccdc8bd5e8.png" alt="Vault Icon">
                 Personal Document Vault
             </div>
-            <nav>
-                <a href="#">Home</a>
-                <a href="#">Features</a>
-                <a href="#">Security</a>
-                <a href="#">Pricing</a>
-                <a href="#" class="login-btn">Log In</a>
-            </nav>
+             
         </header>
         <div class="hero">
             <div class="hero-content">
                 <h1>Secure Your Documents with Confidence</h1>
                 <p>Personal Document Vault offers unparalleled protection for your sensitive files, accessible anywhere, anytime.</p>
-                <a href="#" class="cta-button">Start Securing Files</a>
+                <a href="{% url 'login' %}" class="cta-button">Start Securing Files</a>
                 <a href="#" class="secondary-cta">Learn More ></a>
                 <div class="stats">
                     <div class="stat">
