@@ -8,7 +8,7 @@
      <title>PDV - {% block title %}{% endblock title %}</title>
     
     {% block css %}
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@1.0.1/css/bulma.min.css">
+     
 
     {% endblock css %}
     
@@ -116,7 +116,7 @@
     <div id="sidebar">
         <button id="toggle-btn"><i class="fas fa-bars  "></i></button>
         <ul>
-           <li><a href="{% url 'dashboard' %}"><i class="fas fa-tachometer-alt"></i><span class="label">Dashboard</span></a></li>
+           <li><a href="{% url 'main' %}"><i class="fas fa-tachometer-alt"></i><span class="label">Dashboard</span></a></li>
             <li><a href="{% url 'folder_list' %}"><i class="fas fa-folder"></i><span class="label">Folders</span></a></li>
             <li><a href="{% url 'keys' %}"><i class="fas fa-key"></i><span class="label">Keys</span></a></li>
             <li><a href="{% url 'tools' %}"><i class="fas fa-tools"></i><span class="label">Tools</span></a></li>
@@ -126,9 +126,9 @@
     </div>
     <div id="content">
         <div id="navbar">
-            <div>PDV</div>
+            <div><b>Personal Document Vault</b></div>
             <div>
-                <i class="fas fa-bell"></i>
+                <b style="margin-left: -120px" id="greeting" ></b>
                 <span>{{request.user}}</span>
             </div>
         </div>
@@ -167,6 +167,32 @@
         checkWindowSize(); // Check on initial load
 
 
+
+
+
+         function getGreeting() {
+            const now = new Date();
+            const hours = now.getHours();
+            let greeting;
+
+            if (hours < 12) {
+                greeting = 'Good Morning!';
+            } else if (hours < 18) {
+                greeting = 'Good Afternoon!';
+            } else {
+                greeting = 'Good Evening!';
+            }
+
+            return greeting;
+        }
+
+        function updateGreeting() {
+            const greetingElement = document.getElementById('greeting');
+            const greeting = getGreeting();
+            greetingElement.textContent = greeting;
+        }
+
+        window.onload = updateGreeting;
     </script>
 
 

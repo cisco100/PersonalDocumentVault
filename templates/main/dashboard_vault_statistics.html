@@ -1,0 +1,123 @@
+ {% extends './base.html' %}
+{% block title %}Dashboard-Vault-Statistics{% endblock %}
+{% load static %}
+
+{% block css %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<style>
+    @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+    
+    body {
+        font-family: 'Poppins', sans-serif;
+        background-color: #f0f4f8;
+    }
+           
+    .stat-card {
+        background-color: #ffffff;
+        border-radius: 12px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        padding: 20px;
+        margin: 10px;
+        transition: all 0.3s ease;
+    }
+
+    .stat-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+    }
+</style>
+{% endblock css %}
+
+{% block content1 %}
+<div class="container mx-auto px-4 py-8">
+    <h1 class="text-4xl font-bold mb-8 text-gray-800">Vault Statistics</h1>
+
+    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6 mb-8">
+        <div class="stat-card">
+            <h3 class="text-lg font-semibold mb-2 text-blue-600">Total Folders</h3>
+            <p class="text-3xl font-bold text-gray-800">{{ total_folders|default:"0" }}</p>
+        </div>
+        <div class="stat-card">
+            <h3 class="text-lg font-semibold mb-2 text-green-600">Total Files</h3>
+            <p class="text-3xl font-bold text-gray-800">{{ total_files|default:"0" }}</p>
+        </div>
+        <div class="stat-card">
+            <h3 class="text-lg font-semibold mb-2 text-purple-600">Total Size</h3>
+            <p class="text-3xl font-bold text-gray-800">{{ total_size|filesizeformat|default:"0" }}</p>
+        </div>
+        <div class="stat-card">
+            <h3 class="text-lg font-semibold mb-2 text-orange-600">Total Downloads</h3>
+            <p class="text-3xl font-bold text-gray-800">{{ total_downloads|default:"0" }}</p>
+        </div>
+        <div class="stat-card">
+            <h3 class="text-lg font-semibold mb-2 text-teal-600">Shared</h3>
+            <p class="text-3xl font-bold text-gray-800">{{ total_shared|default:"0" }}</p>
+        </div>
+    </div>
+
+    <!-- Folder Structure -->
+    <div class="stat-card mt-8">
+        <h3 class="text-xl font-semibold mb-4 text-gray-800">Folder Structure</h3>
+        <div id="folder-structure" class="h-96 overflow-auto"></div>
+    </div>
+</div>
+
+{% block js %}
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+ document.addEventListener('DOMContentLoaded', function() {
+    try {
+        const folderTree = JSON.parse('{{ folder_tree|safe }}');
+        
+        function renderTree(node, parentElement) {
+            const item = document.createElement('div');
+            item.className = 'ml-4';
+            
+            const content = document.createElement('span');
+            content.textContent = node.name;
+            content.className = 'cursor-pointer hover:text-blue-600';
+            item.appendChild(content);
+
+            if (node.children && node.children.length > 0) {
+                const icon = document.createElement('span');
+                icon.textContent = '▶';
+                icon.className = 'mr-2 inline-block transform transition-transform duration-200';
+                content.prepend(icon);
+
+                const childrenContainer = document.createElement('div');
+                childrenContainer.className = 'hidden ml-4';
+                item.appendChild(childrenContainer);
+
+                content.addEventListener('click', function() {
+                    childrenContainer.classList.toggle('hidden');
+                    icon.style.transform = childrenContainer.classList.contains('hidden') ? 'rotate(0deg)' : 'rotate(90deg)';
+                });
+
+                node.children.forEach(child => renderTree(child, childrenContainer));
+            } else {
+                const fileIcon = document.createElement('span');
+                fileIcon.textContent = '📄';
+                fileIcon.className = 'mr-2';
+                content.prepend(fileIcon);
+            }
+
+            parentElement.appendChild(item);
+        }
+
+        const treeContainer = document.getElementById('folder-structure');
+        treeContainer.innerHTML = ''; // Clear existing content
+        
+        if (folderTree && folderTree.length > 0) {
+            folderTree.forEach(node => renderTree(node, treeContainer));
+        } else {
+            treeContainer.textContent = 'No folder structure data available.';
+        }
+    } catch (error) {
+        console.error('Error creating Folder Structure:', error);
+        document.getElementById('folder-structure').innerHTML = 'Error loading folder structure. Please check the console for details.';
+    }
+});
+ </script>
+{% endblock js %}
+{% endblock content1 %}

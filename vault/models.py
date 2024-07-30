@@ -1,4 +1,5 @@
 from ckeditor.fields import RichTextField
+from ckeditor_uploader.fields import RichTextUploadingField
 from cryptography.hazmat.primitives.asymmetric import rsa
 from cryptography.hazmat.primitives import serialization
 from django.db import models
@@ -21,11 +22,13 @@ ID_ENCRYPTION_KEY = str(os.getenv('ID_ENCRYPTION_KEY'))
 class Folder(models.Model):
     id=models.UUIDField(primary_key=True,default=uuid.uuid4,editable=False)
     name = models.CharField(max_length=255,unique=True)
-    description = RichTextField()
+    description = RichTextField(config_name='editor')
     parent_folder = models.ForeignKey('self', on_delete=models.CASCADE, null=True, blank=True, related_name='subfolders')
     owner = models.ForeignKey(User, on_delete=models.CASCADE, related_name='folders')
     created_at = models.DateTimeField(default=timezone.now)
     updated_at = models.DateTimeField(auto_now_add=True)
+    is_trashed = models.BooleanField(default=False)
+
     def __str__(self):
         return self.name
 
@@ -42,7 +45,8 @@ class Folder(models.Model):
 
 
 
-
+class Editor(models.Model):
+    content=RichTextUploadingField(config_name='editor_config')
 
 
 
@@ -52,27 +56,7 @@ class Key(models.Model):
     public_key = models.TextField()
     private_key = models.TextField()
 
-    # def save(self, *args, **kwargs):
-    #     if not self.pk:
-    #         private_key = rsa.generate_private_key(
-    #             public_exponent=65537,
-    #             key_size=2048
-    #         )
-    #         public_key = private_key.public_key()
-    #         self.private_key = private_key.private_bytes(
-    #             encoding=serialization.Encoding.PEM,
-    #             format=serialization.PrivateFormat.PKCS8,
-    #             encryption_algorithm=serialization.NoEncryption()
-    #         ).decode('utf-8')
-    #         self.public_key = public_key.public_bytes(
-    #             encoding=serialization.Encoding.PEM,
-    #             format=serialization.PublicFormat.SubjectPublicKeyInfo
-    #         ).decode('utf-8')
-    #     super().save(*args, **kwargs)
-
-
-
-
+ 
 
 
 
@@ -93,14 +77,39 @@ class File(models.Model):
     owner = models.ForeignKey(User, on_delete=models.CASCADE, related_name='files')
     created_at = models.DateTimeField(default=timezone.now)
     updated_at = models.DateTimeField(auto_now_add=True)
+    is_trashed = models.BooleanField(default=False)
+
     def __str__(self):
         return self.name
 
+
+
     def get_share_url(self):
-        fernet = Fernet(ID_ENCRYPTION_KEY)
-        value = fernet.encrypt(str(self.pk).encode())
-        value = base64.urlsafe_b64encode(value).decode()
-        return reverse("share-file-id", kwargs={"id": (value)})
+        return reverse("share-file", kwargs={"file_id": str(self.id)})
+
+ 
+class UserActivity(models.Model):
+    ACTIVITY_TYPES = (
+        ('upload', 'Upload'),
+        ('download', 'Download'),
+        ('share', 'Share'),
+    )
+    
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    activity_type = models.CharField(max_length=10, choices=ACTIVITY_TYPES)
+    timestamp = models.DateTimeField(auto_now_add=True)
+    
+    def __str__(self):
+        return f"{self.user.username} - {self.activity_type} - {self.timestamp}"
+
+
+
+
+
+
+ 
+
+
 
 
 class Trash(models.Model):
@@ -108,7 +117,7 @@ class Trash(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='trash')
     file = models.ForeignKey(File, on_delete=models.CASCADE, null=True, blank=True, related_name='trashed_file')
     folder = models.ForeignKey(Folder, on_delete=models.CASCADE, null=True, blank=True, related_name='trashed_folder')
-    deleted_at = models.DateTimeField(default=timezone.now)
+    trashed_at = models.DateTimeField(default=timezone.now)
 
     def __str__(self):
         return f"Trash item {self.id} by {self.user}"

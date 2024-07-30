@@ -3,6 +3,8 @@ import uuid
 from django.contrib.auth.models import User
 from PIL import Image
 from django.conf import settings
+import random
+import string
 
 
 
@@ -13,8 +15,12 @@ class PinCode(models.Model):
 	def __str__(self):
 		return self.pin
 
+class Secrets(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    secret = models.CharField(max_length=32, blank=True, null=True)
 
-
+    def __str__(self):
+        return f"Secret for {self.user.username}"
 
 class Profile(models.Model):
 	user = models.OneToOneField(User, on_delete=models.CASCADE)

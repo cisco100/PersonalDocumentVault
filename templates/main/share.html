@@ -1,43 +1,112 @@
 {% extends './base.html' %}
-{% block title %}Share File{% endblock %}
-{% load cosfilter %}
+{% block title %}Share - {{ file.name }}{% endblock %}
 {% load static %}
 
+{% block css%}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11.12.3/dist/sweetalert2.min.css">
+
+{% endblock css%}
 {% block content1 %}
-
-<style>
-    main {
-        height: 100%;
-        width: 100%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        overflow: auto;
-    }
-</style>
-
-<div class="row justify-content-center">
-    <div class="col-lg-6 col-md-8 col-sm-12 col-xs-12">
-        <div class="card card-default border rounded-0">
-            <div class="card-header">
-                <h5 class="card-title"><b>Shared File</b></h5>
-            </div>
-            <div class="card-body">
-                <div class="container-fluid">
-                    <dl>
-                        <dt class="text-muted"><b>File Name :</b></dt>
-                        <dd class="ps-4">{{ file.name }}</dd>
-                        <dt class="text-muted"><b>Sent By:</b></dt>
-                        <dd class="ps-4">{{file.owner }}</dd>
-                        <dt class="text-muted"><b>Filename:</b></dt>
-                        <dd class="ps-4">{{ file.file_path|replaceBlank:'uploads/' }}</dd>
-                    </dl>
-                    <center>
-                        <a download="{{ file.file_path|replaceBlank:'uploads/' }}" href="{{ file.file_path.url }}" class="btn btn-primary rounded-pill col-6"><i class="fa fa-download"></i> Download File</a>
-                    </center>
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-6 col-md-8 col-sm-12">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="card-title mb-0">Shared File Details</h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <h6 class="text-muted">File Name</h6>
+                        <p class="lead">{{ file.name }}</p>
+                    </div>
+                    <div class="mb-3">
+                        <h6 class="text-muted">Shared By</h6>
+                        <p>{{ file.owner.username }}</p>
+                    </div>
+                    <div class="mb-3">
+                        <h6 class="text-muted">File Size</h6>
+                        <p>{{ file.size|filesizeformat }}</p>
+                    </div>
+                    <div class="mb-3">
+                        <h6 class="text-muted">Share URL</h6>
+                        <div class="input-group">
+                            <input type="text" class="form-control" value="{{ share_url }}" id="shareUrl" readonly>
+                            <button class="btn btn-outline-secondary" type="button" onclick="copyShareUrl()">
+                                <i class="fas fa-copy"></i> Copy
+                            </button>
+                        </div>
+                    </div>
+                    <div class="text-center mt-4">
+                        <button onclick="decryptAndDownload('{{ file.id }}')" class="btn btn-primary btn-lg">
+                            <i class="fas fa-lock-open me-2"></i>Decrypt and Download
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 </div>
+{% block js%}
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.11.1/dist/sweetalert2.all.min.js"></script>
+
+<script>
+function copyShareUrl() {
+    var copyText = document.getElementById("shareUrl");
+    copyText.select();
+    copyText.setSelectionRange(0, 99999);
+    document.execCommand("copy");
+    alert("Share URL copied to clipboard!");
+}
+
+function decryptAndDownload(fileId) {
+    Swal.fire({
+        title: 'Enter Decryption Key',
+        input: 'textarea',
+        inputAttributes: {
+            autocapitalize: 'off'
+        },
+        showCancelButton: true,
+        confirmButtonText: 'Decrypt and Download',
+        showLoaderOnConfirm: true,
+        preConfirm: (key) => {
+            return fetch('/decrypt/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': '{{ csrf_token }}'
+                },
+                body: JSON.stringify({ key: key, file_id: fileId })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (!data.success) {
+                    throw new Error(data.error || 'Decryption failed')
+                }
+                return data
+            })
+        },
+        allowOutsideClick: () => !Swal.isLoading()
+    }).then((result) => {
+        if (result.isConfirmed) {
+            Swal.fire({
+                title: 'Decryption Successful',
+                text: 'Downloading file...',
+                icon: 'success',
+                timer: 1500,
+                showConfirmButton: false
+            }).then(() => {
+                window.location.href = `/download/${fileId}/`;
+            })
+        }
+    }).catch(error => {
+        Swal.fire({
+            title: 'Error',
+            text: error.message,
+            icon: 'error'
+        });
+    });
+}
+</script>
+
+{% endblock js%}
 {% endblock content1 %}

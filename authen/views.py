@@ -2,11 +2,14 @@ from django.shortcuts import render,redirect
 import requests
 import os
 import time
+from PIL import Image 
+from io import BytesIO
 from bs4 import BeautifulSoup
-from django.urls import reverse
+from django.urls import reverse,reverse_lazy
 import uuid
 from django.http import JsonResponse
 from authen.forms import PinCodeForm
+from authen.models import Secrets
 from authen.utils import secretcode
 from django.urls import reverse_lazy
 from django.contrib.auth.views import LoginView, LogoutView,PasswordResetView, PasswordChangeView
@@ -15,19 +18,24 @@ from django.contrib.messages.views import SuccessMessageMixin
 from django.views import View
 from django.contrib.auth.decorators import login_required
 from .forms import RegisterForm, LoginForm, UpdateUserForm, UpdateProfileForm
+import qrcode
+import pyotp
+from django.http import HttpResponse, JsonResponse
+from django.views.decorators.csrf import csrf_exempt
+from django.conf import settings
+import base64
+from django.views.decorators.http import require_POST,require_http_methods
+ 
 
-
-
+ 
 class RegisterView(View):
     form_class = RegisterForm
     initial = {'key': 'value'}
     template_name = 'account/users/register.html'
 
     def dispatch(self, request, *args, **kwargs):
-        # will redirect to the home page if a user tries to access the register page while logged in
         if request.user.is_authenticated:
-            return  redirect(reverse('cover'))
-        # else process dispatch as it otherwise normally would
+            return redirect(reverse('cover'))
         return super(RegisterView, self).dispatch(request, *args, **kwargs)
 
     def get(self, request, *args, **kwargs):
@@ -36,15 +44,20 @@ class RegisterView(View):
 
     def post(self, request, *args, **kwargs):
         form = self.form_class(request.POST)
-
         if form.is_valid():
-            form.save()
-
+            user = form.save()
+            
+            # Generate and store the initial secret for MFA
+            secret = pyotp.random_base32()
+            Secrets.objects.create(user=user, secret=secret)
+            
             username = form.cleaned_data.get('username')
             messages.success(request, f'Account created for {username}')
-
-            return redirect(to='login')
-
+            
+            # Store the secret in the session for use in the pair view
+            request.session['mfa_secret'] = secret
+            
+            return redirect(to='pair')
         return render(request, self.template_name, {'form': form})
 
 
@@ -63,6 +76,7 @@ class CustomLoginView(LoginView):
             self.request.session.modified = True
 
         # else browser session will be as long as the session cookie time "SESSION_COOKIE_AGE" defined in settings.py
+    
         return super(CustomLoginView, self).form_valid(form)
 
 
@@ -104,59 +118,68 @@ def profile(request):
 
 
 
+  
 
-
-APPNAME="PDV"
-SECRETCODE=secretcode()
+@login_required
 def pair(request):
-	src=''
-	if request.user.is_authenticated and not request.user.is_anonymous:
-		
-		APPINFO=str(request.user.username).upper()
+    # Retrieve the secret from the session
+    secret = request.session.get('mfa_secret')
+    
+    if not secret:
+        # If there's no secret in the session, get it from the database
+        secrets = Secrets.objects.get(user=request.user)
+        secret = secrets.secret
 
-		url=f'https://www.authenticatorapi.com/pair.aspx?AppName={APPNAME}&AppInfo={APPINFO}&SecretCode={SECRETCODE}'
-		req= requests.get(url)
-		soup=BeautifulSoup(req.text,'html.parser')
-		img=soup.find('img')
-		src=img.get('src')
-	else:
-		print("something is wrong")
-	return render(request,'account/mfa/pair.html',{"src":src})
+    if not secret:
+        messages.error(request, 'Error retrieving MFA secret. Please contact support.')
+        return redirect('settings')
 
-# def verify(request):
-#     form=PinCodeForm(request.POST or None)
-#     msg=None
-#     print(SECRETCODE)
-#     if request.method=="POST":
-#         if form.is_valid():
-#             pin=form.cleaned_data.get("pin")
-#             url=f'https://www.authenticatorapi.com/Validate.aspx?Pin={pin}&SecretCode={SECRETCODE}'
-#             req=requests.get(url)
-#             if req.text=='True':
-#             	msg='' # msg="<p style='color:green;'> <b>Verification Successful</b></p>"
-#             	time.sleep(5)
-#             	return redirect(reverse('cover'))
-#             elif req.text=='False':
-#             	msg=""#msg="<p style='color:red;'> <b>Verification Failed,please try again</b></p>"
+    # Generate the QR code
+    totp = pyotp.TOTP(secret)
+    uri = totp.provisioning_uri(name=request.user.username, issuer_name='PDV')
+    qr = qrcode.make(uri)
+    buffer = BytesIO()
+    qr.save(buffer, format="PNG")
+    qr_image_base64 = base64.b64encode(buffer.getvalue()).decode('utf-8')
+
+    context = {
+        'src': f'data:image/png;base64,{qr_image_base64}'
+    }
+
+    # Clear the secret from the session after use
+    if 'mfa_secret' in request.session:
+        del request.session['mfa_secret']
+
+    return render(request, 'account/mfa/pair.html', context)
  
-#     return render(request,'account/mfa/verify.html',{'msg':msg,'form':form})
 
-
-
-
+@csrf_exempt
+@login_required
+@require_http_methods(["POST"])
 def verify(request):
-    if request.method == "POST":
-        form = PinCodeForm(request.POST)
-        if form.is_valid():
-            pin = form.cleaned_data.get("pin")
-            url = f'https://www.authenticatorapi.com/Validate.aspx?Pin={pin}&SecretCode={SECRETCODE}'
-            req = requests.get(url)
-            if req.text == 'True':
-                return JsonResponse({'success': True, 'message': 'Verification successful'})
-            else:
-                return JsonResponse({'success': False, 'message': 'Verification failed, please try again'})
-    return JsonResponse({'success': False, 'message': 'Invalid request'})
+    pin = request.POST.get("pin")
+    if not pin:
+        return JsonResponse({'success': False, 'message': 'PIN not provided'})
+    
+    try:
+        # Retrieve the secret for the current user
+        user_secret = Secrets.objects.get(user=request.user)
+        secret = user_secret.secret
+        
+        if not secret:
+            return JsonResponse({'success': False, 'message': 'MFA not set up for this user'})
+        
+        totp = pyotp.TOTP(secret)
+        if totp.verify(pin):
+            # Verification successful
+            return JsonResponse({'success': True, 'message': 'Verification successful'})
+        else:
+            return JsonResponse({'success': False, 'message': 'Verification failed, please try again'})
+    
+    except Secrets.DoesNotExist:
+        return JsonResponse({'success': False, 'message': 'MFA not set up for this user'})
+
 
 
 class LogoutClassView(LogoutView):
-	template_name="account/users/logout.html"
+    template_name="account/users/logout.html"
