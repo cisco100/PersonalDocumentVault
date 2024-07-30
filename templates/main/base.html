@@ -1,4 +1,4 @@
- {% load static %}
+{% load static %}
 
  <!DOCTYPE html>
 <html lang="en">
@@ -126,9 +126,9 @@
     </div>
     <div id="content">
         <div id="navbar">
-            <div>PDV</div>
+            <div><b>Personal Document Vault</b></div>
             <div>
-                <i class="fas fa-bell"></i>
+                <b style="margin-left: -120px" id="greeting" ></b>
                 <span>{{request.user}}</span>
             </div>
         </div>
@@ -167,6 +167,32 @@
         checkWindowSize(); // Check on initial load
 
 
+
+
+
+         function getGreeting() {
+            const now = new Date();
+            const hours = now.getHours();
+            let greeting;
+
+            if (hours < 12) {
+                greeting = 'Good Morning!';
+            } else if (hours < 18) {
+                greeting = 'Good Afternoon!';
+            } else {
+                greeting = 'Good Evening!';
+            }
+
+            return greeting;
+        }
+
+        function updateGreeting() {
+            const greetingElement = document.getElementById('greeting');
+            const greeting = getGreeting();
+            greetingElement.textContent = greeting;
+        }
+
+        window.onload = updateGreeting;
     </script>
 
 

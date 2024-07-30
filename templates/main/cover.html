@@ -1,4 +1,4 @@
- {% extends 'layout/base.html' %}
+{% extends 'layout/base.html' %}
 {% load humanize %} 
 {% load static %}
 
@@ -8,105 +8,196 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
 <style type="text/css">
-       body, html {
-            margin: 0;
-            padding: 0;
-            font-family: 'Roboto', sans-serif;
-            background: linear-gradient(135deg, #1a1a2e, #16213e);
-            color: #ffffff;
-            min-height: 100vh;
-        }
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 20px;
-        }
-        header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 20px 0;
-        }
-        .logo {
-            font-size: 24px;
-            font-weight: bold;
-            display: flex;
-            align-items: center;
-        }
-        .logo img {
-            width: 40px;
-            margin-right: 10px;
-        }
-        nav a {
-            color: #ffffff;
-            text-decoration: none;
-            margin-left: 20px;
-        }
-        .login-btn {
-            background-color: rgba(255, 255, 255, 0.1);
-            padding: 8px 16px;
-            border-radius: 4px;
-        }
-        .hero {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-top: 80px;
-        }
-        .hero-content {
-            max-width: 50%;
-        }
-        h1 {
-            font-size: 48px;
-            margin-bottom: 20px;
-        }
-        p {
-            font-size: 18px;
-            color: #b8c1ec;
-            margin-bottom: 30px;
-        }
-        .cta-button {
-            background-color: #4361ee;
-            color: #ffffff;
-            text-decoration: none;
-            padding: 12px 24px;
-            border-radius: 4px;
-            font-weight: bold;
-            transition: background-color 0.3s;
-        }
-        .cta-button:hover {
-            background-color: #3a0ca3;
-        }
-        .secondary-cta {
-            color: #ffffff;
-            margin-left: 20px;
-        }
-        .stats {
-            display: flex;
-            margin-top: 40px;
-        }
-        .stat {
-            margin-right: 40px;
-        }
-        .stat-number {
-            font-size: 24px;
-            font-weight: bold;
-        }
-        .stat-label {
-            color: #b8c1ec;
-        }
-        .vault-image {
-            width: 400px;
-            height: 400px;
-            background: url('https://i.pinimg.com/originals/93/d3/e3/93d3e31639a4d07613de9dccdc8bd5e8.png') no-repeat center;
-            background-size: contain;
-            animation: float 6s ease-in-out infinite;
-        }
-        @keyframes float {
-            0% { transform: translateY(0px); }
-            50% { transform: translateY(-20px); }
-            100% { transform: translateY(0px); }
-        }
+        body, html {
+    margin: 0;
+    padding: 0;
+    font-family: 'Roboto', sans-serif;
+    background: linear-gradient(135deg, #1a237e, #00796b);
+    color: #ffffff;
+    min-height: 100vh;
+}
+
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px 0;
+}
+
+.logo {
+    font-size: 24px;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+}
+
+.logo img {
+    width: 40px;
+    margin-right: 10px;
+}
+
+nav a {
+    color: #ffffff;
+    text-decoration: none;
+    margin-left: 20px;
+    transition: color 0.3s;
+}
+
+nav a:hover {
+    color: #ff7043;
+}
+
+.login-btn {
+    background-color: rgba(255, 255, 255, 0.1);
+    padding: 10px 18px;
+    border-radius: 6px;
+    transition: background-color 0.3s;
+}
+
+.login-btn:hover {
+    background-color: rgba(255, 255, 255, 0.2);
+}
+
+.hero {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 80px;
+}
+
+.hero-content {
+    max-width: 50%;
+}
+
+h1 {
+    font-size: 48px;
+    margin-bottom: 20px;
+    line-height: 1.2;
+}
+
+p {
+    font-size: 18px;
+    color: #e0e0e0;
+    margin-bottom: 30px;
+    line-height: 1.6;
+}
+
+.cta-button {
+    background-color: #ff7043;
+    color: #ffffff;
+    text-decoration: none;
+    padding: 14px 28px;
+    border-radius: 6px;
+    font-weight: bold;
+    transition: background-color 0.3s, transform 0.2s;
+}
+
+.cta-button:hover {
+    background-color: #f4511e;
+    transform: translateY(-2px);
+}
+
+.secondary-cta {
+    color: #ffffff;
+    margin-left: 20px;
+    text-decoration: underline;
+    transition: color 0.3s;
+}
+
+.secondary-cta:hover {
+    color: #ff7043;
+}
+
+.stats {
+    display: flex;
+    margin-top: 40px;
+}
+
+.stat {
+    margin-right: 40px;
+}
+
+.stat-number {
+    font-size: 28px;
+    font-weight: bold;
+}
+
+.stat-label {
+    color: #e0e0e0;
+}
+
+.vault-image {
+    width: 450px;
+    height: 450px;
+    background: url('https://i.pinimg.com/originals/93/d3/e3/93d3e31639a4d07613de9dccdc8bd5e8.png') no-repeat center;
+    background-size: contain;
+    animation: float 6s ease-in-out infinite;
+    filter: drop-shadow(0 10px 20px rgba(0, 0, 0, 0.2));
+}
+
+@keyframes float {
+    0% { transform: translateY(0px); }
+    50% { transform: translateY(-20px); }
+    100% { transform: translateY(0px); }
+}
+
+/* Additional styles for other pages */
+.dashboard, .folders, .keys, .tools, .settings, .trash {
+    background-color: rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    padding: 20px;
+    margin-top: 20px;
+}
+
+/* Style for buttons across the system */
+button, .button {
+    background-color: #ff7043;
+    color: #ffffff;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background-color 0.3s, transform 0.2s;
+}
+
+button:hover, .button:hover {
+    background-color: #f4511e;
+    transform: translateY(-2px);
+}
+
+/* Style for input fields */
+input[type="text"], input[type="password"], textarea {
+    background-color: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    color: #ffffff;
+    padding: 10px;
+    border-radius: 4px;
+    width: 100%;
+    margin-bottom: 10px;
+}
+
+/* Table styles */
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+}
+
+th, td {
+    padding: 12px;
+    text-align: left;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+th {
+    background-color: rgba(255, 255, 255, 0.1);
+}
     </style>
  
 {% endblock css%}

@@ -1,4 +1,4 @@
- from django.shortcuts import render,redirect
+from django.shortcuts import render,redirect
 import requests
 import os
 import time
@@ -9,6 +9,7 @@ from django.urls import reverse,reverse_lazy
 import uuid
 from django.http import JsonResponse
 from authen.forms import PinCodeForm
+from authen.models import Secrets
 from authen.utils import secretcode
 from django.urls import reverse_lazy
 from django.contrib.auth.views import LoginView, LogoutView,PasswordResetView, PasswordChangeView
@@ -24,19 +25,17 @@ from django.views.decorators.csrf import csrf_exempt
 from django.conf import settings
 import base64
 from django.views.decorators.http import require_POST,require_http_methods
+ 
 
-
-
+ 
 class RegisterView(View):
     form_class = RegisterForm
     initial = {'key': 'value'}
     template_name = 'account/users/register.html'
 
     def dispatch(self, request, *args, **kwargs):
-        # will redirect to the home page if a user tries to access the register page while logged in
         if request.user.is_authenticated:
-            return  redirect(reverse('cover'))
-        # else process dispatch as it otherwise normally would
+            return redirect(reverse('cover'))
         return super(RegisterView, self).dispatch(request, *args, **kwargs)
 
     def get(self, request, *args, **kwargs):
@@ -45,15 +44,20 @@ class RegisterView(View):
 
     def post(self, request, *args, **kwargs):
         form = self.form_class(request.POST)
-
         if form.is_valid():
-            form.save()
-
+            user = form.save()
+            
+            # Generate and store the initial secret for MFA
+            secret = pyotp.random_base32()
+            Secrets.objects.create(user=user, secret=secret)
+            
             username = form.cleaned_data.get('username')
             messages.success(request, f'Account created for {username}')
-
+            
+            # Store the secret in the session for use in the pair view
+            request.session['mfa_secret'] = secret
+            
             return redirect(to='pair')
-
         return render(request, self.template_name, {'form': form})
 
 
@@ -114,51 +118,66 @@ def profile(request):
 
 
 
-CONSTANT_SECRET = 'JBSWY3DPEHPK3PXP7S2QLDPBIDWDOP7T'
+  
 
-@require_http_methods(["GET"])
+@login_required
 def pair(request):
-    # Use the constant secret
-    secret = CONSTANT_SECRET
+    # Retrieve the secret from the session
+    secret = request.session.get('mfa_secret')
     
-    # Generate a time-based OTP using the secret code
-    totp = pyotp.TOTP(secret)
-    
-    # Create the provisioning URI
-    uri = totp.provisioning_uri(name=request.user.username, issuer_name='PDV')
-     
+    if not secret:
+        # If there's no secret in the session, get it from the database
+        secrets = Secrets.objects.get(user=request.user)
+        secret = secrets.secret
+
+    if not secret:
+        messages.error(request, 'Error retrieving MFA secret. Please contact support.')
+        return redirect('settings')
+
     # Generate the QR code
+    totp = pyotp.TOTP(secret)
+    uri = totp.provisioning_uri(name=request.user.username, issuer_name='PDV')
     qr = qrcode.make(uri)
     buffer = BytesIO()
     qr.save(buffer, format="PNG")
     qr_image_base64 = base64.b64encode(buffer.getvalue()).decode('utf-8')
-    
-    # Render the QR code within the template
+
     context = {
-        'src': 'data:image/png;base64,' + qr_image_base64,
-        'secret': secret  # Pass the secret to the template for display
+        'src': f'data:image/png;base64,{qr_image_base64}'
     }
+
+    # Clear the secret from the session after use
+    if 'mfa_secret' in request.session:
+        del request.session['mfa_secret']
+
     return render(request, 'account/mfa/pair.html', context)
+ 
 
 @csrf_exempt
+@login_required
 @require_http_methods(["POST"])
 def verify(request):
     pin = request.POST.get("pin")
     if not pin:
         return JsonResponse({'success': False, 'message': 'PIN not provided'})
     
-    # Use the constant secret
-    secret = CONSTANT_SECRET
+    try:
+        # Retrieve the secret for the current user
+        user_secret = Secrets.objects.get(user=request.user)
+        secret = user_secret.secret
+        
+        if not secret:
+            return JsonResponse({'success': False, 'message': 'MFA not set up for this user'})
+        
+        totp = pyotp.TOTP(secret)
+        if totp.verify(pin):
+            # Verification successful
+            return JsonResponse({'success': True, 'message': 'Verification successful'})
+        else:
+            return JsonResponse({'success': False, 'message': 'Verification failed, please try again'})
     
-    totp = pyotp.TOTP(secret)
-    if totp.verify(pin):
-        # Verification successful
-        return JsonResponse({'success': True, 'message': 'Verification successful'})
-        return redirect(to='login')
-
-    else:
-        return JsonResponse({'success': False, 'message': 'Verification failed, please try again'})
-
+    except Secrets.DoesNotExist:
+        return JsonResponse({'success': False, 'message': 'MFA not set up for this user'})
 
 
 

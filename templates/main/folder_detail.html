@@ -1,5 +1,6 @@
-{% extends './base.html' %}
+ {% extends './base.html' %}
 {% block title %}Folders Detail{% endblock %}
+ {% load custom_filters %}
 {% load humanize %} 
 {% load static %}
 
@@ -7,12 +8,15 @@
 
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.datatables.net/1.11.5/css/dataTables.bootstrap5.min.css" rel="stylesheet">
-    <!-- causing problem with sidebar<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@1.0.1/css/bulma.min.css"> -->
-
+ 
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11.12.3/dist/sweetalert2.min.css">
     <link href="https://cdn.datatables.net/buttons/2.0.0/css/buttons.bootstrap5.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <style>
-        body {
+    
+
+    <style type="text/css">
+        
+         body {
             padding-bottom: 120px; /* Adjust based on your footer height */
         }
         .breadcrumb {
@@ -46,6 +50,66 @@
                 margin-top: 1rem;
             }
         }
+
+
+
+         
+    .upload-form {
+        max-width: 400px;
+        margin: 20px auto;
+        font-family: Arial, sans-serif;
+    }
+    .form-group {
+        margin-bottom: 20px;
+    }
+    .form-group label {
+        display: block;
+        margin-bottom: 5px;
+        font-weight: bold;
+    }
+    .form-control {
+        width: 100%;
+        padding: 8px 8px 8px 30px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        box-sizing: border-box;
+    }
+    .input-wrapper {
+        position: relative;
+    }
+    .input-icon {
+        position: absolute;
+        left: 10px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #666;
+    }
+    .file-input-wrapper {
+        display: flex;
+        align-items: center;
+    }
+    .file-input-button {
+        padding: 8px 12px;
+        background-color: #f0f0f0;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        cursor: pointer;
+    }
+    .file-name {
+        margin-left: 10px;
+        color: #666;
+    }
+    .submit-button {
+        background-color: #00d1b2;
+        color: white;
+        border: none;
+        padding: 10px 15px;
+        border-radius: 4px;
+        cursor: pointer;
+    }
+    .submit-button:hover {
+        background-color: #00c4a7;
+    }
     </style>
 {% endblock css %}
  {%block content1%}
@@ -75,7 +139,8 @@
                         <p class="card-text">
                             Total Items: <strong>{{ total|intcomma }}</strong><br>
                             Sub-Folders: <strong>{{ subfolders.count|intcomma }}</strong> | 
-                            Files: <strong>{{ files.count|intcomma }}</strong>
+                            Files: <strong>{{ files.count|intcomma }}</strong><br>
+                            Size Of Folder: <strong>{{folsize|filesizeformat}}</strong>
                         </p>
                     </div>
                     <div class="col-md-3 text-center">
@@ -102,6 +167,7 @@
                     <table class="table table-hover" id="example">
                         <thead>
                             <tr>
+                                <th>Icon</th>
                                 <th>Type</th>
                                 <th>Name</th>
                                 <th>Size</th>
@@ -112,42 +178,67 @@
                         <tbody>
                             {% for subfolder in subfolders %}
                             <tr>
-                                <td><i class="fas fa-folder text-warning"></i></td>
-                                <td><a href="{% url 'folder_detail' subfolder.id %}">{{ subfolder.name }}</a></td>
+                                <td><img width="25px" height="25px" src="{% static 'assets/img/folder.png'%}"></td>
+                                <td>Folder</td>
+                                <td><a style="text-decoration-line: none;" href="{% url 'folder_detail' subfolder.id %}">{{ subfolder.name }}</a></td>
                                 <td>-</td>
                                 <td>{{ subfolder.updated_at|date:"M d, Y H:i" }}</td>
+                                
+
+
                                 <td class="action-column">
                                     <div class="dropdown">
-                                        <button class="btn btn-secondary btn-sm dropdown-toggle" type="button" id="dropdownMenuButton1" data-bs-toggle="dropdown" aria-expanded="false">
+                                        <button class="btn btn-secondary btn-sm dropdown-toggle" type="button" id="dropdownMenuButton{{ subfolder.id }}" data-bs-toggle="dropdown" aria-expanded="false">
                                             Actions
                                         </button>
-                             <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton1">
-                                 <li><a class="dropdown-item rename-action" href="#"><i class="fas fa-edit"></i>Rename</a></li>
-                                <li><a class="dropdown-item delete-action" href="#" ><i class="fas fa-trash"></i>Delete</a></li>
-                                <li><a class="dropdown-item move-action" href="#" ><i class="fas fa-arrows-alt"></i>Move</a></li>
-                            </ul>
+                                        <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton{{ subfolder.id }}">
+                                            <li><a class="dropdown-item description-action" href="#" data-folder-id="{{ subfolder.id }}"><i class="fas fa-info-circle"></i> Description</a></li>
+                                        <li>
+                                            <a class="dropdown-item update-action" 
+                                               data-bs-toggle="modal" 
+                                               data-bs-target="#folderUpdateModal"
+                                               data-folder-id="{{ subfolder.id }}">
+                                                <i class="fas fa-edit"></i> Update
+                                            </a>
+                                        </li>          
+                                        <li><a class="dropdown-item delete-action" href="#" 
+                                               data-item-type="folder" 
+                                               data-item-id="{{ subfolder.id }}"
+                                               data-delete-url="{% url 'delete_item' %}"  >
+                                               <i class="fas fa-trash"></i> Delete
+                                            </a></li>
+                                        </ul>
                                     </div>
                                 </td>
-                            </tr>
+
+
+
+ 
+                         </tr>
                             {% endfor %}
                             {% for file in files %}
                             <tr>
-                                <td><i class="fas fa-file text-primary"></i></td>
+                           <td><img width="25px" height="25px" src="{{file.icon.url}}"></td>
+                                <td>{{file.file_extension|format_extension}}</td>
                                 <td>{{ file.name }}</td>
                                 <td>{{ file.size|filesizeformat }}</td>
                                 <td>{{ file.updated_at|date:"M d, Y H:i" }}</td>
                                 <td class="action-column">
                                     <div class="dropdown">
-                                        <button class="btn btn-secondary btn-sm dropdown-toggle" type="button" id="dropdownMenuButton2" data-bs-toggle="dropdown" aria-expanded="false">
+                                        <button class="btn btn-secondary btn-sm dropdown-toggle" type="button" id="dropdownMenuButton{{file.id}}" data-bs-toggle="dropdown" aria-expanded="false">
                                             Actions
                                         </button>
-                                        <!-- After decryption share will come+download -->
-                            <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton1">
-                                <li><a class="dropdown-item rename-action" href="#"><i class="fas fa-lock-open"></i>Decrypt</a></li> 
-                                <li><a class="dropdown-item rename-action" href="#"><i class="fas fa-edit"></i>Rename</a></li>
-                                <li><a class="dropdown-item delete-action" href="#" ><i class="fas fa-trash"></i>Delete</a></li>
-                                <li><a class="dropdown-item move-action" href="#" ><i class="fas fa-arrows-alt"></i>Move</a></li>
-                            </ul>
+                                        <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton{{file.id}}">
+                                            <li><a class="dropdown-item decrypt-action" href="#" data-file-id="{{ file.id }}"><i class="fas fa-lock-open"></i>Decrypt</a></li>
+                                         <li>
+                                         <a class="dropdown-item update-action" data-bs-toggle="modal" data-bs-target="#fileUpdateModal" data-file-id="{{ file.id }}" data-file-name="{{ file.name }}">
+                                        <i class="fas fa-edit"></i> Update
+                                        </a>
+                                        </li>
+                                             
+                                            <li><a class="dropdown-item delete-action" href="#" data-item-type="file" data-item-id="{{ file.id }}"><i class="fas fa-trash"></i> Delete</a></li>
+
+                                        </ul>
                                     </div>
                                 </td>
                             </tr>
@@ -197,100 +288,276 @@
                             </div>
                             <div class="modal-body">
     
-   <form method="post" action="{% url 'upload_file' folder.id %}" enctype="multipart/form-data">
-    {% csrf_token %}
-    <div class="field">
-        <label class="label" for="id_name">File Name</label>
-        <div class="control has-icons-left">
-            <input class="input" type="text" name="name" id="id_name" placeholder="Enter file name">
-            <span class="icon is-small is-left">
-                <i class="fas fa-file-signature"></i>
-            </span>
-        </div>
-    </div>
-    <div class="field">
-        <label class="label" for="id_file">Choose File</label>
-        <div class="file has-name">
-            <label class="file-label">
-                <input class="file-input" type="file" name="file" id="id_file">
-                <span class="file-cta">
-                    <span class="file-icon">
-                        <i class="fas fa-upload"></i>
-                    </span>
-                    <span class="file-label">
-                        Choose a file…
-                    </span>
-                </span>
-                <span class="file-name">
-                    No file chosen
-                </span>
-            </label>
-        </div>
-    </div>
-    <div class="field">
-        <div class="control">
-            <button class="button is-primary" type="submit">
-                <span class="icon">
-                    <i class="fas fa-cloud-upload-alt"></i>
-                </span>
-                <span>Upload File</span>
-            </button>
-        </div>
-    </div>
-</form>     
+
+
+                <form id="fileUpdateForm" method="post" action="{% url 'upload_file' folder.id %}" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label for="id_name" class="form-label">File Name</label>
+                        <input type="text" name="name" id="id_name" class="form-control" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="id_file" class="form-label">Choose File</label>
+                        <input type="file" name="file" id="id_file" class="form-control">
+                        <span class="file-name"></span>
+                    </div>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-cloud-upload-alt"></i> Upload 
+                    </button>
+                </form>
+
   
+ 
+ 
+ 
                 </div>
                                 </div>
                             </div>
                         </div>
 
 
+ 
+<!-- File Update Modal -->
+<div class="modal fade" id="fileUpdateModal" tabindex="-1" aria-labelledby="fileUpdateModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="fileUpdateModalLabel">Update File</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="fileUpdateForm" method="post" action="" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label for="id_name" class="form-label">File Name</label>
+                        <input type="text" name="name" id="id_name" class="form-control" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="id_file" class="form-label">Choose File</label>
+                        <input type="file" name="file" id="id_file" class="form-control">
+                        <span class="file-name"></span>
+                    </div>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-cloud-upload-alt"></i> Update File
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+ 
+ <!-- Include CKEditor scripts in your base template or main template -->
 
 
+<!-- Modal -->
+<div class="modal fade" id="folderUpdateModal" tabindex="-1" aria-labelledby="folderUpdateModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="folderUpdateModalLabel">Update Folder</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <!-- Form will be loaded here -->
+            </div>
+        </div>
+    </div>
+</div>
 
-
-
-
-
-
-
-
-
+ 
     {% block js%}
 
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.11.1/dist/sweetalert2.all.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js"></script>
     <script src="https://cdn.datatables.net/1.11.5/js/dataTables.bootstrap5.min.js"></script>
+    <script type="text/javascript" src="{% static 'assets/js/folder_detail.js' %}"></script>
+    <script src="https://cdn.jsdelivr.net/npm/js-cookie@3.0.5/dist/js.cookie.min.js"></script>
+   <!--  <script src="{% static 'ckeditor/ckeditor-init.js' %}"></script>
+    <script src="{% static 'ckeditor/ckeditor/ckeditor.js' %}"></script> -->
+    <!-- <script src="{% static 'ckeditor/ckeditor.js' %}"></script> -->
     <script>
-        $(document).ready(function() {
-            $('#example').DataTable({
-                responsive: true,
-                pageLength: 5,
-                language: {
-                    search: "Filter records:"
+        
+ 
+    document.addEventListener('DOMContentLoaded', function() {
+    console.log('DOM fully loaded and parsed');
+
+    const decryptLinks = document.querySelectorAll('.decrypt-action');
+    console.log('Found decrypt links:', decryptLinks.length);
+
+    decryptLinks.forEach(link => {
+        console.log('Adding event listener to:', link);
+        link.addEventListener('click', function(e) {
+            e.preventDefault();
+            const fileId = this.dataset.fileId;
+            console.log('File ID:', fileId);
+
+            Swal.fire({
+                title: 'Enter Private Key to Decrypt',
+                input: 'textarea',
+                inputAttributes: {
+                    autocapitalize: 'off'
                 },
-                "bDestroy": true,
-                buttons: [
-            'copy', 'csv', 'excel', 'pdf', 'print', 'colvis'
-        ]
+                showCancelButton: true,
+                confirmButtonText: 'Submit',
+                showLoaderOnConfirm: true,
+                preConfirm: (key) => {
+                    return fetch('/decrypt/', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRFToken': getCookie('csrftoken')
+                        },
+                        body: JSON.stringify({ key: key, file_id: fileId })
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (!data.success) {
+                            throw new Error(data.error || 'Decryption failed')
+                        }
+                        return data
+                    })
+                },
+                allowOutsideClick: () => !Swal.isLoading()
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    Swal.fire({
+                        title: 'Decryption Successful',
+                        text: result.value.message,
+                        icon: 'success',
+                        timer: 1500,
+                        showConfirmButton: false
+                    }).then(() => {
+                        return Swal.fire({
+                            title: 'What would you like to do?',
+                            html:
+                                '<button id="shareBtn" class="swal2-confirm swal2-styled" style="margin-right: 10px;">' +
+                                '<i class="fas fa-share-alt"></i> Share</button>' +
+                                '<button id="downloadBtn" class="swal2-deny swal2-styled">' +
+                                '<i class="fas fa-download"></i> Download</button>',
+                            showCancelButton: true,
+                            showConfirmButton: false,
+                            focusConfirm: false,
+                            didOpen: () => {
+                                document.getElementById('shareBtn').addEventListener('click', () => {
+                                    Swal.clickConfirm();
+                                    handleShare(fileId);
+                                });
+                                document.getElementById('downloadBtn').addEventListener('click', () => {
+                                    Swal.clickConfirm();
+                                    handleDownload(fileId);
+                                });
+                            }
+                        });
+                    });
+                }
+            }).catch(error => {
+                Swal.fire({
+                    title: 'Error',
+                    text: error.message,
+                    icon: 'error'
+                });
             });
         });
-   
+    });
+});
 
-document.addEventListener('DOMContentLoaded', () => {
-    const fileInput = document.querySelector('.file-input');
-    const fileName = document.querySelector('.file-name');
+function handleShare(fileId) {
+    console.log('Share button clicked');
+    const shareUrl = `/share/${fileId}/`;
+    console.log('Share URL:', shareUrl);
+    navigator.clipboard.writeText(window.location.origin + shareUrl).then(() => {
+        Swal.fire({
+            title: 'Share Link Copied!',
+            text: 'The share link has been copied to your clipboard.',
+            icon: 'success',
+            timer: 2000,
+            showConfirmButton: false
+        });
+    }).catch(err => {
+        console.error('Failed to copy: ', err);
+        window.location.href = shareUrl;
+    });
+}
 
-    fileInput.addEventListener('change', () => {
-        if (fileInput.files.length > 0) {
-            fileName.textContent = fileInput.files[0].name;
-        } else {
-            fileName.textContent = 'No file chosen';
+function handleDownload(fileId) {
+    console.log('Download button clicked');
+    console.log('Download URL:', `/download/${fileId}/`);
+    window.location.href = `/download/${fileId}/`;
+}
+
+
+ 
+    document.addEventListener('DOMContentLoaded', function() {
+        var fileUpdateModal = document.getElementById('fileUpdateModal');
+        fileUpdateModal.addEventListener('show.bs.modal', function (event) {
+            var button = event.relatedTarget;
+            var fileId = button.getAttribute('data-file-id');
+            var fileName = button.getAttribute('data-file-name');
+            
+            var form = this.querySelector('#fileUpdateForm');
+            form.action = '/update-file/' + fileId + '/';  // Update this URL to match your URL pattern
+            form.querySelector('#id_name').value = fileName;
+            form.querySelector('.file-name').textContent = 'No file chosen';
+        });
+
+        document.getElementById('id_file').addEventListener('change', function(event) {
+            var fileName = event.target.files[0] ? event.target.files[0].name : 'No file chosen';
+            document.querySelector('.file-name').textContent = fileName;
+        });
+    });
+
+
+
+
+document.addEventListener('DOMContentLoaded', function() {
+    var folderUpdateModal = document.getElementById('folderUpdateModal');
+    folderUpdateModal.addEventListener('show.bs.modal', function (event) {
+        var button = event.relatedTarget;
+        var folderId = button.getAttribute('data-folder-id');
+        var modalBody = this.querySelector('.modal-body');
+        
+        fetch(`{% url 'update_folder' 999999 %}`.replace('999999', folderId))
+            .then(response => response.text())
+            .then(html => {
+                modalBody.innerHTML = html;
+                // Reinitialize CKEditor
+                if (typeof CKEDITOR !== 'undefined') {
+                    for (var i in CKEDITOR.instances) {
+                        CKEDITOR.instances[i].destroy();
+                    }
+                    CKEDITOR.replaceAll();
+                }
+            });
+    });
+});
+
+// Handle form submission
+$(document).on('submit', '#folderUpdateModal form', function(e) {
+    e.preventDefault();
+    var form = $(this);
+    $.ajax({
+        url: form.attr('action'),
+        type: 'POST',
+        data: form.serialize(),
+        success: function(response) {
+            if (response.success) {
+                $('#folderUpdateModal').modal('hide');
+                // Optionally reload the page or update the folder list
+                location.reload();
+            } else {
+                // Handle errors
+                alert('Error updating folder');
+            }
         }
     });
 });
-</script>
+
+
+
+    </script>
+
     {%endblock js%}
  {%endblock content1%}
 

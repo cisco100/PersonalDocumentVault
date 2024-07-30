@@ -1,0 +1,95 @@
+ {% extends './base.html' %}
+{% block title %}Dashboard-User-Info{% endblock %}
+{% load static %}
+     
+    
+ 
+{% block css %} 
+   <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+    
+    </style>
+  
+{% endblock css %}
+
+{% block content1 %}
+ 
+     <div class="bg-gray-100 min-h-screen py-12 px-4 sm:px-6 lg:px-8">
+    <div class="max-w-3xl mx-auto">
+        <div class="bg-white shadow-xl rounded-lg overflow-hidden">
+            <div class="bg-gradient-to-r from-blue-500 to-indigo-600 p-6 sm:p-10">
+                <h1 class="text-3xl font-bold text-white">Welcome, {{ username }}!</h1>
+                <p class="mt-2 text-blue-100">Here's an overview of your account information.</p>
+            </div>
+            
+            <div class="p-6 sm:p-10">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="space-y-4">
+                        <div>
+                            <h2 class="text-lg font-semibold text-gray-700">Email</h2>
+                            <p class="mt-1 text-gray-600">{{ email }}</p>
+                        </div>
+                        <div>
+                            <h2 class="text-lg font-semibold text-gray-700">MFA Status</h2>
+                            <p class="mt-1">
+                                {% if mfa_enabled %}
+                                    <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800">
+                                        <svg class="mr-2 h-4 w-4 text-green-500" fill="currentColor" viewBox="0 0 20 20">
+                                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                                        </svg>
+                                        Enabled
+                                    </span>
+                                {% else %}
+                                    <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-red-100 text-red-800">
+                                        <svg class="mr-2 h-4 w-4 text-red-500" fill="currentColor" viewBox="0 0 20 20">
+                                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
+                                        </svg>
+                                        Disabled
+                                    </span>
+                                {% endif %}
+                            </p>
+                        </div>
+                    </div>
+                    <div class="space-y-4">
+                        <div>
+                            <h2 class="text-lg font-semibold text-gray-700">Joined Date</h2>
+                            <p class="mt-1 text-gray-600">{{ date_joined|date:"F j, Y" }}</p>
+                        </div>
+                        <div>
+                            <h2 class="text-lg font-semibold text-gray-700">Last Login</h2>
+                            <p class="mt-1 text-gray-600">{{ last_login|date:"F j, Y H:i" }}</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="mt-8">
+                    <h2 class="text-lg font-semibold text-gray-700 mb-4">Account Actions</h2>
+                    <div class="space-x-4">
+                        <a href="#" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                            Edit Profile
+                        </a>
+                        <a href="#" class="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                            Change Password
+                        </a>
+                        {% if not mfa_enabled %}
+                            <a href="#" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
+                                Enable MFA
+                            </a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% block js%}
+ <script src="https://cdn.tailwindcss.com"></script>
+
+ <script>
+
+     
+ </script>
+{% endblock js%}
+{% endblock content1 %}
+ 
