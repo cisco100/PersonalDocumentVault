@@ -1,0 +1,32 @@
+{% extends 'layout/base.html' %}
+{% load humanize %} 
+{% load static %}
+
+{% block title %}400 Bad Request{% endblock title %}
+
+{% block css %} 
+
+  
+<link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet"> 
+  
+% endblock css%}
+{% block content %}
+ <body class="bg-gray-100 flex items-center justify-center h-screen">
+  <div class="text-center">
+    <h1 class="text-6xl font-bold text-red-500">400</h1>
+    <p class="text-2xl mt-4">Bad Request</p>
+    <p class="mt-2 text-gray-600">Sorry, the request could not be understood by the server due to malformed syntax.</p>
+    <a href="{% url 'cover'%}" class="mt-6 inline-block bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600">Go to Homepage</a>
+  </div>
+ </body>
+
+{%endblock content%}
+
+
+
+
+
+
+  
+
+

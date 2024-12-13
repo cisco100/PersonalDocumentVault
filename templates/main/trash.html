@@ -1,0 +1,184 @@
+{% extends './base.html' %}
+{% block title %}Trash{% endblock %}
+
+{% load static %}
+{% block css %}
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/5.3.0/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.5/css/dataTables.bootstrap5.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3" crossorigin="anonymous">
+      <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-ka7Sk0Gln4gmtz2MlQnikT1wXgYsOg+OMhuP+IlRH9sENBO0LRn5q+8nbTov4+1p" crossorigin="anonymous"></script>
+
+    <style>
+        .action-btn {
+            cursor: pointer;
+            margin-right: 5px;
+        }
+    </style>
+{% endblock css %}
+
+{% block content1 %}
+    <div class="container mt-5">
+        <h1 class="mb-4">Trash</h1>
+        <table id="trashTable" class="table table-striped" style="width:100%">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Type</th>
+                    <th>Trashed At</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in trash_items %}
+                <tr>
+                    <td>
+                        {% if item.file %}
+                            {{ item.file.name }}
+                        {% elif item.folder %}
+                            {{ item.folder.name }}
+                        {% else %}
+                            Unknown Item
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if item.file %}
+                            File
+                        {% elif item.folder %}
+                            Folder
+                        {% else %}
+                            Unknown
+                        {% endif %}
+                    </td>
+                    <td>{{ item.trashed_at|date:"Y-m-d H:i:s" }}</td>
+                    <td class="action-column">
+                        <div class="dropdown">
+                            <button class="btn btn-secondary btn-sm dropdown-toggle" type="button" id="dropdownMenuButton{{ item.id }}" data-bs-toggle="dropdown" aria-expanded="false">
+                                Actions
+                            </button>
+                            <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton{{ item.id }}">
+                                <li><a class="dropdown-item restore-action" href="#" data-item-id="{{ item.id }}"><i class="fas fa-undo"></i> Restore</a></li>
+                                <li><a class="dropdown-item delete-action" href="#" data-item-id="{{ item.id }}" data-item-type="{% if item.file %}file{% elif item.folder %}folder{% else %}unknown{% endif %}"><i class="fas fa-trash"></i> Delete Permanently</a></li>
+                            </ul>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+
+
+{% block js %}
+    <script src="https://code.jquery.com/jquery-3.7.0.js"></script>
+    <script src="https://cdn.datatables.net/1.13.5/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.5/js/dataTables.bootstrap5.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://cdn.jsdelivr.net/npm/js-cookie@3.0.5/dist/js.cookie.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-ka7Sk0Gln4gmtz2MlQnikT1wXgYsOg+OMhuP+IlRH9sENBO0LRn5q+8nbTov4+1p" crossorigin="anonymous"></script>
+
+    <script>
+
+        $(document).ready(function() {
+            $('#trashTable').DataTable();
+
+            $('.restore-action').on('click', function(e) {
+                e.preventDefault();
+                const itemId = $(this).data('item-id');
+                restoreItem(itemId);
+            });
+
+            $('.delete-action').on('click', function(e) {
+                e.preventDefault();
+                const itemId = $(this).data('item-id');
+                const itemType = $(this).data('item-type');
+                deleteItem(itemId, itemType);
+            });
+        });
+ 
+
+   
+var csrftoken = Cookies.get('csrftoken');
+
+    // Setup CSRF token for AJAX requests
+    $.ajaxSetup({
+        headers: {
+            'X-CSRFToken': csrftoken
+        }
+    });
+
+    function restoreItem(itemId) {
+        Swal.fire({
+            title: 'Restore item?',
+            text: "This item will be moved back to its original location.",
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonColor: '#3085d6',
+            cancelButtonColor: '#d33',
+            confirmButtonText: 'Yes, restore it!'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                $.post({
+                    url: `/trash/restore/`,
+                    data: {
+                        'trash_id': itemId
+                    },
+                    success: function(data) {
+                        if (data.status === 'success') {
+                            Swal.fire('Restored!', data.message, 'success').then(() => {
+                                location.reload();
+                            });
+                        } else {
+                            Swal.fire('Error', data.message, 'error');
+                        }
+                    },
+                    error: function(xhr, status, error) {
+                        Swal.fire('Error', 'An error occurred while restoring the item.', 'error');
+                    }
+                });
+            }
+        });
+    }
+
+         var csrftoken = Cookies.get('csrftoken');
+         $.ajaxSetup({
+            headers: {
+                'X-CSRFToken': csrftoken
+            }
+        });
+
+        function deleteItem(itemId) {
+            Swal.fire({
+                title: 'Delete permanently?',
+                text: "You won't be able to revert this!",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#d33',
+                cancelButtonColor: '#3085d6',
+                confirmButtonText: 'Yes, delete it!'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    $.post({
+                        url: `/trash/delete/${itemId}/`,  // Use the URL name defined in urls.py
+                        success: function(data) {
+                            if (data.status === 'success') {
+                                Swal.fire('Deleted!', data.message, 'success').then(() => {
+                                    location.reload();
+                                });
+                            } else {
+                                Swal.fire('Error', data.message, 'error');
+                            }
+                        },
+                        error: function(xhr, status, error) {
+                            Swal.fire('Error', 'An error occurred while deleting the item.', 'error');
+                        }
+                    });
+                }
+            });
+        }
+    </script>
+
+{% endblock js %}
+{% endblock content1 %}

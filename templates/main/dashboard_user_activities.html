@@ -1,0 +1,144 @@
+{% extends './base.html' %}
+{% block title %}Dashboard-User-Activities{% endblock %}
+{% load static %}
+
+{% block css %} 
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<style>
+    @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+    
+    body {
+        font-family: 'Poppins', sans-serif;
+        background-color: #f0f4f8;
+    }
+    .activity-card {
+        background-color: #ffffff;
+        border-radius: 12px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        padding: 20px;
+        margin-bottom: 20px;
+        transition: all 0.3s ease;
+    }
+    .activity-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+    }
+    .chart-container {
+        position: relative;
+        height: 300px;
+        width: 100%;
+    }
+</style>
+{% endblock css %}
+
+{% block content1 %}
+<div class="container mx-auto px-4 py-8">
+    <h1 class="text-4xl font-bold mb-8 text-gray-800">User Activities</h1>
+    
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+        <!-- Last Login Time -->
+        <div class="activity-card">
+            <h3 class="text-xl font-semibold mb-2 text-blue-600">Last Login</h3>
+            <p class="text-2xl font-bold text-gray-800">{{ last_login }}</p>
+        </div>
+        
+        <!-- Recent Activity Log -->
+         
+ 
+    
+        <div class="activity-card">
+             
+            <a href="{% url 'logs' %}"><p class="text-xl font-semibold mb-2 text-blue-600">Activity Logs</p></a>
+        </div>
+        
+  </div>
+    <!-- Activity Graphs -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mt-8">
+        <!-- Line Graph: Activity Over Time -->
+        <div class="activity-card">
+            <h3 class="text-xl font-semibold mb-4 text-gray-800">Activity Over Time</h3>
+            <div class="chart-container">
+                <canvas id="activity-time-chart"></canvas>
+            </div>
+        </div>
+        <!-- Bar Chart: Activity Types Comparison -->
+        <div class="activity-card">
+            <h3 class="text-xl font-semibold mb-4 text-gray-800">Activity Types Comparison</h3>
+            <div class="chart-container">
+                <canvas id="activity-types-chart"></canvas>
+            </div>
+        </div>
+    </div>
+
+     
+</div> 
+ {% block js %}
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Activity Over Time Chart
+    var timeCtx = document.getElementById('activity-time-chart').getContext('2d');
+    var timeChart = new Chart(timeCtx, {
+        type: 'line',
+        data: {
+            labels: {{ activity_dates|safe }},
+            datasets: [{
+                label: 'Activity Count',
+                data: {{ activity_counts|safe }},
+                borderColor: 'rgb(75, 192, 192)',
+                tension: 0.1
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
+        }
+    });
+
+    // Activity Types Comparison Chart
+    var typesCtx = document.getElementById('activity-types-chart').getContext('2d');
+    var typesChart = new Chart(typesCtx, {
+        type: 'bar',
+        data: {
+            labels: {{ activity_types|safe }},
+            datasets: [{
+                label: 'Activity Count',
+                data: {{ activity_type_counts|safe }},
+                backgroundColor: [
+                    'rgba(255, 99, 132, 0.2)',
+                    'rgba(54, 162, 235, 0.2)',
+                    'rgba(255, 206, 86, 0.2)',
+                    'rgba(75, 192, 192, 0.2)',
+                    'rgba(153, 102, 255, 0.2)'
+                ],
+                borderColor: [
+                    'rgba(255, 99, 132, 1)',
+                    'rgba(54, 162, 235, 1)',
+                    'rgba(255, 206, 86, 1)',
+                    'rgba(75, 192, 192, 1)',
+                    'rgba(153, 102, 255, 1)'
+                ],
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
+        }
+    });
+});
+</script> 
+
+ {% endblock js %}
+{% endblock content1 %}

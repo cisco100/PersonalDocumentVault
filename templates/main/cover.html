@@ -1,0 +1,246 @@
+ {% extends 'layout/base.html' %}
+{% load humanize %} 
+{% load static %}
+
+{% block title %}Welcome{% endblock title %}
+
+{% block css %}
+<link rel="icon" href="https://i.pinimg.com/originals/93/d3/e3/93d3e31639a4d07613de9dccdc8bd5e8.png">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+    /* General styles that can be applied to other pages */
+    :root {
+        --primary-color: #3a86ff;
+        --secondary-color: #8338ec;
+        --accent-color: #ff006e;
+        --text-color: #2b2d42;
+        --bg-color: #ecf0f1; 
+        --card-bg-color: #ffffff;
+    }
+
+
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
+
+    body {
+        font-family: 'Poppins', sans-serif;
+        background-color: var(--bg-color);
+        color: var(--text-color);
+        line-height: 1.6;
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .container {
+        max-width: 1200px;
+        width: 100%;
+        margin: 0 auto;
+        padding: 20px;
+        flex-grow: 1;
+        display: flex;
+        flex-direction: column;
+    }
+
+    h1, h2, h3, h4, h5, h6 {
+        color: var(--primary-color);
+        margin-bottom: 0.5em;
+    }
+
+    a {
+        color: var(--primary-color);
+        text-decoration: none;
+    }
+
+    .btn {
+        display: inline-block;
+        background-color: var(--accent-color);
+        color: white;
+        padding: 10px 20px;
+        border-radius: 30px;
+        text-decoration: none;
+        font-weight: 600;
+        transition: all 0.3s ease;
+    }
+
+    .btn:hover {
+        background-color: var(--secondary-color);
+        transform: translateY(-3px);
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    }
+
+    .card {
+        background-color: var(--card-bg-color);
+        border-radius: 8px;
+        padding: 20px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+
+    /* Specific styles for the landing page */
+    .logo {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 20px;
+    }
+
+    .logo img {
+        width: 40px;
+        height: 40px;
+    }
+
+    .logo-text {
+        font-size: 1.2rem;
+        font-weight: 700;
+        color: var(--primary-color);
+    }
+
+    .hero {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 20px;
+        flex-grow: 1;
+    }
+
+    .hero-content {
+        flex: 1;
+    }
+
+    .hero h1 {
+        font-size: 2.5rem;
+        font-weight: 700;
+        margin-bottom: 15px;
+    }
+
+    .hero p {
+        font-size: 1rem;
+        margin-bottom: 20px;
+    }
+
+    .hero-image {
+        flex: 1;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+
+    .hero-image img {
+        max-width: 60%;
+        height: auto;
+        animation: float 6s ease-in-out infinite;
+    }
+
+    .features {
+        display: flex;
+        justify-content: space-around;
+        margin-top: 20px;
+    }
+
+    .feature {
+        text-align: center;
+        padding: 10px;
+    }
+
+    .feature-icon {
+        font-size: 2rem;
+        color: var(--primary-color);
+        margin-bottom: 10px;
+    }
+
+    .feature-title {
+        font-size: 1rem;
+        font-weight: 600;
+        margin-bottom: 5px;
+        color: var(--secondary-color);
+    }
+
+    .feature-description {
+        font-size: 0.8rem;
+    }
+
+     .cta-btn {
+            display: inline-block;
+            background-color: lightseagreen;
+            color: white;
+            padding: 12px 30px;
+            border-radius: 30px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .cta-btn:hover {
+            background-color:lightseagreen;
+            transform: translateY(-3px);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+
+    @keyframes float {
+        0% { transform: translateY(0px); }
+        50% { transform: translateY(-10px); }
+        100% { transform: translateY(0px); }
+    }
+
+    @media (max-width: 768px) {
+        .hero {
+            flex-direction: column;
+            text-align: center;
+        }
+
+        .features {
+            flex-direction: column;
+        }
+
+        .feature {
+            margin-bottom: 20px;
+        }
+
+        .hero-image img {
+            max-width: 50%;
+        }
+    }
+</style>
+{% endblock css %}
+
+{% block content %}
+<div class="container">
+    <div class="logo">
+        <img width="40" height="40" src="https://i.pinimg.com/originals/93/d3/e3/93d3e31639a4d07613de9dccdc8bd5e8.png" alt="Vault Icon">
+        <span class="logo-text">Personal Document Vault</span>
+    </div>
+
+    <section class="hero">
+        <div class="hero-content">
+            <h1>Secure Your Documents with Confidence</h1>
+            <p>Personal Document Vault offers unparalleled protection for your sensitive files, accessible anywhere, anytime.</p>
+            <a href="{% url 'login' %}" class="cta-btn">Start Securing Files</a>
+        </div>
+        <div class="hero-image">
+           <img src="https://i.pinimg.com/originals/93/d3/e3/93d3e31639a4d07613de9dccdc8bd5e8.png" alt="Vault Icon">
+        </div>
+    </section>
+
+    <section class="features">
+        <div class="feature">
+            <i class="feature-icon fas fa-lock"></i>
+            <h2 class="feature-title">AES 256-bit Encryption</h2>
+            <p class="feature-description">Military-grade protection</p>
+        </div>
+        <div class="feature">
+            <i class="feature-icon fas fa-cloud-upload-alt"></i>
+            <h2 class="feature-title">99.9% Uptime</h2>
+            <p class="feature-description">Always accessible</p>
+        </div>
+        <div class="feature">
+            <i class="feature-icon fas fa-headset"></i>
+            <h2 class="feature-title">24/7 Support</h2>
+            <p class="feature-description">Always here to help</p>
+        </div>
+    </section>
+</div>
+{% endblock content %}

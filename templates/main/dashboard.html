@@ -1,0 +1,120 @@
+{% extends './base.html' %}
+{% block title %}Dashboard{% endblock %}
+{% load static %}
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/flowbite/1.6.5/flowbite.min.css" rel="stylesheet" />
+    
+ 
+{% block css %} 
+   <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+        
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: #f0f4f8;
+        }
+
+        .security-tip-card {
+            background-color: #ffffff;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            margin: 10px;
+            max-width: 300px;
+        }
+
+        .dashboard-card {
+            background-color: #ffffff;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            margin: 10px;
+            transition: all 0.3s ease;
+        }
+
+        .dashboard-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        .card-icon {
+            font-size: 2rem;
+            margin-bottom: 10px;
+        }
+    </style>
+  
+{% endblock css %}
+
+{% block content1 %}
+ 
+    <div class="container mx-auto px-4 py-8">
+        <h1 class="text-4xl font-bold mb-8 text-gray-800">Secure Vault Dashboard</h1>
+
+        <!-- Security Tips Section -->
+        <section class="mb-12">
+            <h2 class="text-2xl font-semibold mb-4 text-gray-700">Security Tips</h2>
+            <div class="flex overflow-x-auto pb-4 security-tips-carousel">
+                <div class="security-tip-card">
+                    <h3 class="text-lg font-semibold mb-2 text-blue-600">Use Strong Passwords</h3>
+                    <p class="text-gray-600">Create unique, complex passwords for each of your accounts to enhance security.</p>
+                </div>
+                <div class="security-tip-card">
+                    <h3 class="text-lg font-semibold mb-2 text-green-600">Enable Two-Factor Authentication</h3>
+                    <p class="text-gray-600">Add an extra layer of security to your accounts with 2FA.</p>
+                </div>
+                <div class="security-tip-card">
+                    <h3 class="text-lg font-semibold mb-2 text-purple-600">Regular Backups</h3>
+                    <p class="text-gray-600">Regularly backup your important files to prevent data loss.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Dashboard Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            <!-- Vault Statistics Card -->
+            <a href="{% url 'dashboard_vault_statistics' %}" class="dashboard-card">
+                <div class="card-icon text-blue-500">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                    </svg>
+                </div>
+                <h3 class="text-xl font-semibold mb-2 text-gray-800">Vault Statistics</h3>
+                <p class="text-gray-600">View detailed statistics about your folders, files, and storage usage.</p>
+            </a>
+
+            <!-- User Activities Card -->
+            <a href="{% url 'dashboard_user_activities'%}" class="dashboard-card">
+                <div class="card-icon text-green-500">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
+                    </svg>
+                </div>
+                <h3 class="text-xl font-semibold mb-2 text-gray-800">User Activities</h3>
+                <p class="text-gray-600">Track your recent activities, including downloads, uploads, and shares.</p>
+            </a>
+
+            <!-- User Info Card -->
+            <a href="{% url 'dashboard_user_info' %}" class="dashboard-card">
+                <div class="card-icon text-purple-500">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                    </svg>
+                </div>
+                <h3 class="text-xl font-semibold mb-2 text-gray-800">User Info</h3>
+                <p class="text-gray-600">View and manage your account details and preferences.</p>
+            </a>
+        </div>
+    </div>
+
+ 
+    
+{% block js%}
+ <script src="https://cdnjs.cloudflare.com/ajax/libs/flowbite/1.6.5/flowbite.min.js"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
+
+ <script src="https://cdnjs.cloudflare.com/ajax/libs/chart.js/3.7.1/chart.min.js"></script>
+ <script>
+
+     
+ </script>
+{% endblock js%}
+{% endblock content1 %}

@@ -1,0 +1,161 @@
+ {% extends './base.html' %}
+{% block title %}Dashboard-Vault-Statistics{% endblock %}
+{% load static %}
+
+{% block css %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jstree/3.3.12/themes/default/style.min.css" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+
+<style>
+    @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+    
+    body {
+        font-family: 'Poppins', sans-serif;
+        background-color: #f0f4f8;
+    }
+           
+    .stat-card {
+        background-color: #ffffff;
+        border-radius: 12px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        padding: 20px;
+        margin: 10px;
+        transition: all 0.3s ease;
+    }
+
+    .stat-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+    }
+
+ #folder-structure {
+        height: 600px;
+        overflow: auto;
+        font-size: 16px;
+        padding: 20px;
+    }
+
+    .jstree-default .jstree-icon {
+        font-size: 20px;
+    }
+
+    .jstree-default .jstree-anchor {
+        line-height: 24px;
+        height: 24px;
+    }
+
+    .jstree-default .jstree-node {
+        margin-left: 24px;
+    }
+
+    .folder-level-0 > .jstree-icon { color: #3182ce; }
+    .folder-level-1 > .jstree-icon { color: #38a169; }
+    .folder-level-2 > .jstree-icon { color: #d69e2e; }
+    .folder-level-3 > .jstree-icon { color: #d53f8c; }
+    .folder-level-4 > .jstree-icon { color: #805ad5; }
+    .folder-level-4 > .jstree-icon { color: #805ae7; }
+    .folder-level-4 > .jstree-icon { color: #845ad5; }
+
+</style>
+{% endblock css %}
+
+{% block content1 %}
+<div class="container mx-auto px-4 py-8">
+    <h1 class="text-4xl font-bold mb-8 text-gray-800">Vault Statistics</h1>
+
+    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6 mb-8">
+        <div class="stat-card">
+            <h3 class="text-lg font-semibold mb-2 text-blue-600">Total Folders</h3>
+            <p class="text-3xl font-bold text-gray-800">{{ total_folders|default:"0" }}</p>
+        </div>
+        <div class="stat-card">
+            <h3 class="text-lg font-semibold mb-2 text-green-600">Total Files</h3>
+            <p class="text-3xl font-bold text-gray-800">{{ total_files|default:"0" }}</p>
+        </div>
+        <div class="stat-card">
+            <h3 class="text-lg font-semibold mb-2 text-purple-600">Total Size</h3>
+            <p class="text-3xl font-bold text-gray-800">{{ total_size|filesizeformat|default:"0" }}</p>
+        </div>
+        <div class="stat-card">
+            <h3 class="text-lg font-semibold mb-2 text-orange-600">Total Downloads</h3>
+            <p class="text-3xl font-bold text-gray-800">{{ total_downloads|default:"0" }}</p>
+        </div>
+        <div class="stat-card">
+            <h3 class="text-lg font-semibold mb-2 text-teal-600">Shared</h3>
+            <p class="text-3xl font-bold text-gray-800">{{ total_shared|default:"0" }}</p>
+        </div>
+    </div>
+
+    <!-- Folder Structure -->
+    <div class="stat-card mt-8">
+        <h3 class="text-xl font-semibold mb-4 text-gray-800">Folder Structure</h3>
+        <div id="folder-structure" class="h-96 overflow-auto"></div>
+    </div>
+</div>
+
+{% block js %}
+
+ 
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jstree/3.3.12/jstree.min.js"></script>
+<script type="text/javascript"> 
+document.addEventListener('DOMContentLoaded', function() {
+    try {
+        const folderTree = JSON.parse('{{ folder_tree|safe }}');
+        
+        function convertToJsTreeFormat(nodes, level = 0) {
+            return nodes.map(node => ({
+                text: node.name,
+                icon: 'fas fa-folder',
+                children: node.children ? convertToJsTreeFormat(node.children, level + 1) : [],
+                state: { opened: true },
+                a_attr: { class: `folder-level-${level % 5}` }
+            }));
+        }
+
+        const jsTreeData = convertToJsTreeFormat(folderTree);
+
+        $('#folder-structure').jstree({
+            'core': {
+                'data': jsTreeData,
+                'themes': {
+                    'name': 'default',
+                    'dots': false,
+                    'icons': true
+                }
+            },
+            'plugins': ['wholerow', 'types'],
+            'types': {
+                'default': {
+                    'icon': 'fas fa-folder'
+                }
+            }
+        });
+
+        $('#folder-structure').on('ready.jstree', function() {
+            $(this).jstree('open_all');
+        });
+
+    } catch (error) {
+        console.error('Error creating Folder Structure:', error);
+        document.getElementById('folder-structure').innerHTML = 'Error loading folder structure. Please check the console for details.';
+    }
+});
+</script>
+{% endblock js %}
+{% endblock content1 %}
+
+
+
+
+
+
+
+
+
+
+
+ 

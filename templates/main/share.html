@@ -1,0 +1,120 @@
+ {% extends './base.html' %}
+{% block title %}Share - {{ file.name }}{% endblock %}
+{% load static %}
+
+{% block css %}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11.12.3/dist/sweetalert2.min.css">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3" crossorigin="anonymous">
+<style>
+    body {
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        background-color: #f0f2f5;
+    }
+    .card {
+        border-radius: 15px;
+        overflow: hidden;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        transition: all 0.3s ease;
+    }
+    .card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 15px 35px rgba(0, 0, 0, 0.15);
+    }
+    .card-header {
+        background: linear-gradient(45deg, #4a90e2, #63b3ed);
+        padding: 1.5rem;
+    }
+    .card-title {
+        font-size: 1.5rem;
+        font-weight: 600;
+    }
+    .card-body {
+        padding: 2rem;
+    }
+    .text-muted {
+        color: #718096 !important;
+    }
+    .lead {
+        font-size: 1.25rem;
+        font-weight: 500;
+    }
+    .btn-primary {
+        background: linear-gradient(45deg, #4a90e2, #63b3ed);
+        border: none;
+        transition: all 0.3s ease;
+    }
+    .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(74, 144, 226, 0.4);
+    }
+    .input-group {
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+    }
+    #shareUrl {
+        border-top-left-radius: 25px;
+        border-bottom-left-radius: 25px;
+    }
+    .btn-outline-secondary {
+        border-top-right-radius: 25px;
+        border-bottom-right-radius: 25px;
+    }
+    .fade-in {
+        animation: fadeIn 0.5s ease-in;
+    }
+    @keyframes fadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
+    }
+</style>
+{% endblock css %}
+
+{% block content1 %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-6 col-md-8 col-sm-12">
+            <div class="card shadow fade-in">
+                <div class="card-header text-white">
+                    <h5 class="card-title mb-0"><i class="fas fa-share-alt mr-2"></i>Shared File Details</h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-4">
+                        <h6 class="text-muted"><i class="fas fa-file mr-2"></i>File Name</h6>
+                        <p class="lead">{{ file.name }}</p>
+                    </div>
+                    <div class="mb-4">
+                        <h6 class="text-muted"><i class="fas fa-user mr-2"></i>Shared By</h6>
+                        <p>{{ file.owner.username }}</p>
+                    </div>
+                    <div class="mb-4">
+                        <h6 class="text-muted"><i class="fas fa-weight mr-2"></i>File Size</h6>
+                        <p>{{ file.size|filesizeformat }}</p>
+                    </div>
+                    <div class="mb-4">
+                        <h6 class="text-muted"><i class="fas fa-link mr-2"></i>Share URL</h6>
+                        <div class="input-group">
+                            <input type="text" class="form-control" value="{{ share_url }}" id="shareUrl" readonly>
+                            <button class="btn btn-outline-secondary" type="button" onclick="copyShareUrl()">
+                                <i class="fas fa-copy"></i> Copy
+                            </button>
+                        </div>
+                    </div>
+                    <div class="text-center mt-5">
+                        <button onclick="decryptAndDownload('{{ file.id }}')" class="btn btn-primary btn-lg">
+                            <i class="fas fa-lock-open me-2"></i>Decrypt and Download
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock content1 %}
+
+{% block js %}
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.11.1/dist/sweetalert2.all.min.js"></script>
+ <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-ka7Sk0Gln4gmtz2MlQnikT1wXgYsOg+OMhuP+IlRH9sENBO0LRn5q+8nbTov4+1p" crossorigin="anonymous"></script>
+
+<script>
+    // (JavaScript functions remain the same)
+</script>
+{% endblock js %}

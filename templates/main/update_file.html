@@ -1,0 +1,25 @@
+ 
+ <!-- file_update_form.html -->
+<form id="fileUpdateForm" method="post" action="{% url 'file_update' file.id %}" enctype="multipart/form-data">
+    {% csrf_token %}
+    <div class="form-group">
+        <label for="id_name">File Name</label>
+        <input type="text" name="name" id="id_name" value="{{ file.name }}" class="form-control" required>
+    </div>
+    <div class="form-group">
+        <label for="id_file">Choose File</label>
+        <div class="file-input-wrapper">
+            <input type="file" name="file" id="id_file" style="display: none;">
+            <button type="button" class="file-input-button" onclick="document.getElementById('id_file').click()">
+                <i class="fas fa-upload"></i> Choose a file...
+            </button>
+            <span id="file-chosen" class="file-name">{{ file.file.name }}</span>
+        </div>
+    </div>
+    <div class="form-group">
+        <button type="submit" class="submit-button">
+            <i class="fas fa-cloud-upload-alt"></i> Update File
+        </button>
+    </div>
+</form>
+ 

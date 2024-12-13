@@ -1,0 +1,317 @@
+{% extends './base.html' %}
+{% block title %}Keys{% endblock %}
+
+{% block css %}
+<link rel="stylesheet" href="https://unpkg.com/dropzone@5/dist/min/dropzone.min.css" type="text/css" />
+<style>
+  .container {
+        max-width: 1200px;
+        margin: 0 auto;
+    }
+    .row {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 20px;
+    }
+    .col-md-6 {
+        width: 48%;
+    }
+    .dropzone {
+        border: 2px dashed #007bff;
+        border-radius: 5px;
+        background: white;
+        min-height: 200px;
+        padding: 20px;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        transition: all 0.3s ease;
+    }
+    .dropzone:hover {
+        border-color: #0056b3;
+    }
+    .dropzone .dz-message {
+        text-align: center;
+        margin: 2em 0;
+    }
+    .dropzone .dz-message .dz-button {
+        background: none;
+        color: #007bff;
+        border: none;
+        padding: 0;
+        font: inherit;
+        cursor: pointer;
+        outline: inherit;
+    }
+    .dropzone .dz-preview .dz-image {
+        border-radius: 5px;
+    }
+    .dropzone .dz-preview.dz-image-preview {
+        background: transparent;
+    }
+    .dropzone .dz-preview .dz-details {
+        color: #007bff;
+    }
+    .code-block {
+        background-color: #000000;
+        border-radius: 4px;
+        padding: 16px;
+        position: relative;
+        margin: 20px 0;
+        font-family: 'Courier New', Courier, monospace;
+    }
+    .code-content {
+        color: #007bff;
+        white-space: pre-wrap;
+        word-wrap: break-word;
+        margin-right: 30px;
+    }
+    .copy-button {
+        position: absolute;
+        top: 8px;
+        right: 8px;
+        background-color: #333;
+        color: #fff;
+        border: none;
+        border-radius: 4px;
+        padding: 5px 10px;
+        cursor: pointer;
+        transition: background-color 0.3s;
+    }
+    .copy-button:hover {
+        background-color: #555;
+    }
+    img:hover{
+        cursor:move;
+    }
+    .copy-icon {
+        width: 16px;
+        height: 16px;
+        display: inline-block;
+        vertical-align: middle;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='white'%3E%3Cpath d='M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z'/%3E%3C/svg%3E");
+    }
+    .search-container {
+        margin-bottom: 20px;
+    }
+    #search-input {
+        width: 100%;
+        padding: 10px;
+        font-size: 16px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+    }
+    #search-results {
+        list-style-type: none;
+        padding: 0;
+        margin: 0;
+        max-height: 200px;
+        overflow-y: auto;
+        border: 1px solid #ddd;
+        border-top: none;
+        display: none;
+    }
+    #search-results li {
+        padding: 10px;
+        cursor: pointer;
+    }
+    #search-results li:hover {
+        background-color: #f0f0f0;
+    } 
+ 
+</style>
+{% endblock css %}
+
+{% block content1 %}
+<div class="container mt-5">
+    <h1 class="mb-4">Extract Key</h1>
+    <div class="search-container">
+        <input type="text" id="search-input" placeholder="Search for files...">
+        <ul id="search-results"></ul>
+    </div>
+    <div id="content-area" style="display: none;">
+        <div class="row">
+            <div class="col-md-6">
+                <img id="qr-code" src="" alt="QR Code" draggable="true" class="img-fluid">
+            </div>
+            <div class="col-md-6">
+                <div id="imageUploader" class="dropzone"></div>
+            </div>
+        </div>
+        <div class="code-block">
+            <pre class="code-content">{{out}}</pre>
+            <button class="copy-button"  id="refreshButton" onclick="copyCode(this)">
+                <span class="copy-icon"></span>
+            </button>
+        </div>
+    </div>
+</div>
+
+{% block js %}
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://unpkg.com/dropzone@5/dist/min/dropzone.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/js-cookie@3.0.5/dist/js.cookie.min.js"></script>
+<script>
+
+
+    var csrftoken = Cookies.get('csrftoken');
+    Dropzone.autoDiscover = false;
+
+    new Dropzone("#imageUploader", {
+        url: "{% url 'keys' %}",
+        headers: {
+            "X-CSRFToken": csrftoken
+},
+        paramName:"steg",
+        acceptedFiles: "image/*",
+        autoProcessQueue: true,
+        addRemoveLinks: true,
+        maxFilesize: 5,
+        dictDefaultMessage: "Drop QR code image here or click to upload",
+        init: function() {
+            this.on("success", function(file, response) {
+                console.log("File uploaded successfully", response);
+                document.querySelector('.code-content').textContent = response.out;
+            });
+            this.on("error", function(file, errorMessage) {
+                console.error("Error uploading file: ", errorMessage);
+            });
+        }
+    });
+
+    
+        document.addEventListener('DOMContentLoaded', function() {
+    const searchInput = document.getElementById('search-input');
+    const searchResults = document.getElementById('search-results');
+    const contentArea = document.getElementById('content-area');
+    const csrftoken = Cookies.get('csrftoken');
+
+    let searchTimeout;
+
+    searchInput.addEventListener('input', function() {
+        clearTimeout(searchTimeout);
+        const query = this.value.trim();
+
+        if (query.length >= 1) {
+            searchTimeout = setTimeout(() => {
+                fetch(`{% url 'keys' %}?q=${encodeURIComponent(query)}`, {
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'X-CSRFToken': csrftoken
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    searchResults.innerHTML = '';
+                    if (data.length > 0) {
+                        data.forEach(file => {
+                            const li = document.createElement('li');
+                            li.textContent = file.name;
+                            li.addEventListener('click', () => selectFile(file.id));
+                            searchResults.appendChild(li);
+                        });
+                        searchResults.style.display = 'block';
+                    } else {
+                        searchResults.innerHTML = '<li>No results found</li>';
+                        searchResults.style.display = 'block';
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    searchResults.innerHTML = `<li>Error occurred while searching</li>`;
+                    searchResults.style.display = 'block';
+                });
+            }, 300);
+        } else {
+            searchResults.style.display = 'none';
+        }
+    });
+
+    function selectFile(fileId) {
+        fetch(`{% url 'keys' %}?file_id=${fileId}`, {
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+                'X-CSRFToken': csrftoken
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            console.log('Received data:', data);
+            
+            let qrCodeImg = document.getElementById('qr-code');
+            let contentArea = document.getElementById('content-area');
+            
+            if (qrCodeImg && contentArea) {
+                if (data.qrcode_url) {
+                    qrCodeImg.src = data.qrcode_url;
+                    qrCodeImg.style.display = 'block';
+                } else {
+                    console.log("QR code not found");
+                    qrCodeImg.style.display = 'none';
+                }
+                
+                contentArea.style.display = 'block';
+                document.querySelector('.code-content').textContent = `Selected file: ${data.name}`;
+                
+                searchInput.value = data.name;
+                searchResults.style.display = 'none';
+            } else {
+                console.error('Required DOM elements not found');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            let contentArea = document.getElementById('content-area');
+            if (contentArea) {
+                contentArea.style.display = 'none';
+            }
+        });
+    }
+
+
+ 
+
+});
+
+            // Enable drag and drop from QR code to Dropzone
+    document.getElementById('qr-code').addEventListener('dragstart', function(event) {
+        event.dataTransfer.setData('text/plain', event.target.src);
+    });
+
+
+ function copyCode(button) {
+    const codeBlock = button.closest('.code-block');
+    const codeContent = codeBlock.querySelector('.code-content');
+    
+    if (codeContent.textContent.trim() === "") {
+        console.error("No content to copy");
+        return;
+    }
+    
+    const textarea = document.createElement('textarea');
+    textarea.value = codeContent.textContent;
+    document.body.appendChild(textarea);
+    
+    textarea.select();
+    document.execCommand('copy');
+    
+    document.body.removeChild(textarea);
+    
+    const originalText = button.innerHTML;
+    button.innerHTML = 'Copied!';
+    setTimeout(() => {
+        button.innerHTML = originalText;
+    }, 2000);
+}          
+ 
+const refreshButton = document.getElementById('refreshButton');
+
+refreshButton.addEventListener('click', () => {
+ setTimeout(() => {
+    window.location.reload();
+}, 2000);
+});
+
+</script>
+{% endblock js %}
+{% endblock content1 %}
+
+

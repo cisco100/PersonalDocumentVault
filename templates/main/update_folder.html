@@ -1,0 +1,23 @@
+
+
+
+ {% load static %}
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Update File</title>
+    {{ form.media }}
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            CKEDITOR.replace('id_description', CKEDITOR_CONFIGS['minimal']);
+        });
+    </script>
+</head>
+<body>
+    <form method="post" action="{% url 'update_folder' folder_instance.id %}" >
+        {% csrf_token %}
+        {{ form.as_p }}
+    <button type="submit" class="btn btn-primary">Update Folder</button>    
+</form>
+</body>
+</html>

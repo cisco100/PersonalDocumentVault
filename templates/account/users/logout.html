@@ -1,0 +1,35 @@
+{% extends 'layout/base.html' %}
+{% block title %}Logout{% endblock title %}
+
+{% block css%}
+      <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+<style type="text/css">
+    :root {
+            --primary-color: #3498db;
+            --secondary-color: #2c3e50;
+            --background-color: #ecf0f1;
+            --text-color: #34495e;
+        }
+    body {
+    font-family: 'Inter', sans-serif;
+    display: flex;
+    min-height: 100vh;
+    background-color: var(--background-color);
+    color: var(--text-color);
+}
+</style>
+{% endblock css%}
+{% block content %}
+    <div class="card" style="width: 18rem;">
+        <div class="card-body">
+        <h5 class="card-title">You have been logged out</h5>
+        <p class="card-text">
+            Thanks for your time, contact me for any comments or suggestions using my email address.
+        </p>
+        <br><hr><a href="{% url 'login' %}" class="btn btn-primary">Sign in again</a>
+        </div>
+    </div>
+
+
+{% endblock content %}

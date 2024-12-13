@@ -1,0 +1,22 @@
+Content-Type: text/plain; charset="utf-8"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Subject: [127.0.0.1:8000] Unknown Account
+From: webmaster@localhost
+To: ptaweb100@gmail.com
+Date: Wed, 29 May 2024 08:37:55 -0000
+Message-ID: <171697187548.5128.9607303032774016937@DESKTOP-O8OO8EI>
+
+Hello from 127.0.0.1:8000!
+
+You are receiving this email because you, or someone else, tried to access an account with email ptaweb100@gmail.com. However, we do not have any record of such an account in our database.
+
+This mail can be safely ignored if you did not initiate this action.
+
+If it was you, you can sign up for an account using the link below.
+
+http://127.0.0.1:8000/accounts/signup/
+
+Thank you for using 127.0.0.1:8000!
+127.0.0.1:8000
+-------------------------------------------------------------------------------

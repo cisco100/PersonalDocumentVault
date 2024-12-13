@@ -1,0 +1,264 @@
+ {% load static %}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PDV - {% block title %}{% endblock title %}</title>
+    
+    {% block css %}
+    {% endblock css %}
+    
+    <link rel="icon" href="https://i.pinimg.com/originals/93/d3/e3/93d3e31639a4d07613de9dccdc8bd5e8.png">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.1/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #3498db;
+            --secondary-color: #2c3e50;
+            --background-color: #ecf0f1;
+            --text-color: #34495e;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            display: flex;
+            min-height: 100vh;
+            background-color: var(--background-color);
+            color: var(--text-color);
+        }
+        
+        #sidebar {
+            background-color: var(--secondary-color);
+            color: white;
+            width: 250px;
+            transition: all 0.3s;
+            position: fixed;
+            height: 100vh;
+            overflow-y: auto;
+            z-index: 1000;
+        }
+        
+        #sidebar.collapsed {
+            width: 60px;
+        }
+        
+        #sidebar ul {
+            list-style-type: none;
+            padding: 0;
+        }
+        
+        #sidebar li {
+            padding: 10px;
+        }
+        
+        #sidebar a {
+            color: white;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            transition: all 0.3s;
+        }
+        
+        #sidebar a:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+        
+        #sidebar i {
+            margin-right: 10px;
+            width: 20px;
+        }
+        
+        #content {
+            flex-grow: 1;
+            margin-left: 250px;
+            transition: margin-left 0.3s;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+        
+        #content.collapsed {
+            margin-left: 60px;
+        }
+        
+        #navbar {
+            background-color: white;
+            padding: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            position: sticky;
+            top: 0;
+            z-index: 999;
+        }
+        
+        #main-content {
+            padding: 20px;
+            flex-grow: 1;
+            overflow-y: auto;
+        }
+        
+        #footer {
+            background-color: white;
+            color: black;
+            padding: 10px;
+            text-align: center;
+            position: sticky;
+            bottom: 0;
+            width: 100%;
+            z-index: 998;
+        }
+        
+        #toggle-btn {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 20px;
+            cursor: pointer;
+        }
+        
+        #sidebar.collapsed .label {
+            display: none;
+        }
+        
+        .btn-logout {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            margin-left: 15px;
+        }
+
+        .btn-logout:hover {
+            background-color: #2980b9;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+        }
+
+        @media (max-width: 1024px) {
+            #sidebar {
+                width: 60px;
+            }
+            
+            #sidebar .label {
+                display: none;
+            }
+            
+            #content {
+                margin-left: 60px;
+            }
+
+            .user-info {
+                flex-direction: column;
+                align-items: flex-end;
+            }
+
+            .btn-logout {
+                margin-left: 0;
+                margin-top: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="sidebar">
+        <button id="toggle-btn"><i class="fas fa-bars"></i></button>
+        <ul>
+            <li><a href="{% url 'main' %}"><i class="fas fa-tachometer-alt"></i><span class="label">Dashboard</span></a></li>
+            <li><a href="{% url 'folder_list' %}"><i class="fas fa-folder"></i><span class="label">Folders</span></a></li>
+            <li><a href="{% url 'keys' %}"><i class="fas fa-key"></i><span class="label">Keys</span></a></li>
+            <li><a href="{% url 'tools' %}"><i class="fas fa-tools"></i><span class="label">Tools</span></a></li>
+            <li><a href="{% url 'settings' %}"><i class="fas fa-cog"></i><span class="label">Settings</span></a></li>
+            <li><a href="{% url 'list_trash' %}"><i class="fas fa-trash"></i><span class="label">Trash</span></a></li>
+        </ul>
+    </div>
+    <div id="content">
+        <div id="navbar">
+            <div><b>Personal Document Vault</b></div>
+            <div class="user-info">
+                <div>
+                    <b id="greeting"></b>
+                    <span>{{request.user}}</span>
+                </div>
+                <form method="post" action="{% url 'logout' %}" style="display: inline;">
+                    {% csrf_token %}
+                    <button type="submit" class="btn-logout">Logout</button>
+                </form>
+            </div>
+        </div>
+        <div id="main-content">
+            {% block content1 %}
+            {% endblock content1 %}
+        </div>
+        <div id="footer">
+            © {% now 'Y' %} Copyright:
+            <a style="color: black; text-decoration: none;" href="https://github.com/cisco100/PersonalDocumentVault" target="_blank">PDV</a>
+        </div>    
+    </div>
+    <script>
+        const toggleBtn = document.getElementById('toggle-btn');
+        const sidebar = document.getElementById('sidebar');
+        const content = document.getElementById('content');
+        
+        toggleBtn.addEventListener('click', () => {
+            sidebar.classList.toggle('collapsed');
+            content.classList.toggle('collapsed');
+        });
+
+        function checkWindowSize() {
+            if (window.innerWidth <= 1024) {
+                sidebar.classList.add('collapsed');
+                content.classList.add('collapsed');
+            } else {
+                sidebar.classList.remove('collapsed');
+                content.classList.remove('collapsed');
+            }
+        }
+
+        window.addEventListener('resize', checkWindowSize);
+        checkWindowSize(); // Check on initial load
+
+        function getGreeting() {
+            const now = new Date();
+            const hours = now.getHours();
+            let greeting;
+
+            if (hours < 12) {
+                greeting = 'Good Morning!';
+            } else if (hours < 18) {
+                greeting = 'Good Afternoon!';
+            } else {
+                greeting = 'Good Evening!';
+            }
+
+            return greeting;
+        }
+
+        function updateGreeting() {
+            const greetingElement = document.getElementById('greeting');
+            const greeting = getGreeting();
+            greetingElement.textContent = greeting;
+        }
+
+        window.onload = updateGreeting;
+    </script>
+
+    {% block js %}
+    {% endblock js %}
+</body>
+</html>
