@@ -120,7 +120,7 @@ def profile(request):
 
   
 
-#@login_required
+@login_required
 def pair(request):
     # Retrieve the secret from the session
     secret = request.session.get('mfa_secret')
